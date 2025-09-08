@@ -1,0 +1,283 @@
+{
+  "app": {
+    "name": "صناديق نهاية اليوم",
+    "tagline": "وفر الطعام، وفر المال",
+    "description": "اكتشف صناديق الطعام المخفضة من نهاية اليوم من المطاعم والمخابز والسوبرماركت المحلية في لبنان"
+  },
+  "onboarding": {
+    "welcome": {
+      "title": "مرحباً بك في صناديق نهاية اليوم",
+      "subtitle": "بوابتك للحصول على طعام لذيذ بأسعار معقولة ومحاربة الهدر",
+      "description": "انضم لآلاف محبي الطعام اللبنانيين الذين يوفرون المال ويحافظون على البيئة، صندوق واحد في كل مرة."
+    },
+    "how_it_works": {
+      "title": "كيف يعمل التطبيق",
+      "step1": {
+        "title": "اكتشف",
+        "description": "تصفح المطاعم والمخابز والسوبرماركت القريبة التي تقدم صناديق مخفضة"
+      },
+      "step2": {
+        "title": "احجز",
+        "description": "احجز صندوق المفاجآت الخاص بك للاستلام خلال الوقت المحدد"
+      },
+      "step3": {
+        "title": "استمتع",
+        "description": "استلم صندوقك واستمتع بطعام عالي الجودة بخصم يصل إلى 70% من الأسعار العادية"
+      }
+    },
+    "benefits": {
+      "title": "لماذا تختار صناديق نهاية اليوم؟",
+      "save_money": {
+        "title": "وفر المال",
+        "description": "احصل على طعام فاخر بأسعار مخفضة - خصم يصل إلى 70%!"
+      },
+      "reduce_waste": {
+        "title": "حارب هدر الطعام",
+        "description": "ساعد الأعمال المحلية في تقليل الهدر واستمتع بوجبات رائعة"
+      },
+      "support_local": {
+        "title": "ادعم المحلي",
+        "description": "ادعم مطاعمك ومخابزك اللبنانية المفضلة"
+      },
+      "surprise_meals": {
+        "title": "وجبات مفاجئة",
+        "description": "اكتشف نكهات جديدة مع صناديق المفاجآت المنتقاة"
+      }
+    },
+    "get_started": "ابدأ الآن",
+    "skip": "تخطي",
+    "next": "التالي",
+    "back": "السابق"
+  },
+  "auth": {
+    "phone_verification": {
+      "title": "أدخل رقم هاتفك",
+      "subtitle": "سنرسل لك رمز تحقق لتأكيد رقمك",
+      "phone_label": "رقم الهاتف",
+      "phone_hint": "71 123 456",
+      "country_code": "961+",
+      "send_code": "إرسال الرمز",
+      "terms_agreement": "بالمتابعة، أنت توافق على شروط الخدمة وسياسة الخصوصية"
+    },
+    "otp_verification": {
+      "title": "تحقق من رقمك",
+      "subtitle": "أدخل الرمز المكون من 6 أرقام المرسل إلى {phone}",
+      "otp_hint": "أدخل رمز التحقق",
+      "verify": "تحقق",
+      "resend_code": "إعادة إرسال الرمز",
+      "resend_in": "إعادة الإرسال خلال {seconds} ثانية",
+      "change_number": "تغيير الرقم"
+    },
+    "profile_setup": {
+      "title": "أكمل ملفك الشخصي",
+      "subtitle": "ساعدنا في تخصيص تجربتك",
+      "name_label": "الاسم الكامل",
+      "name_hint": "أدخل اسمك الكامل",
+      "email_label": "البريد الإلكتروني (اختياري)",
+      "email_hint": "your@email.com",
+      "language_label": "اللغة المفضلة",
+      "notifications_title": "إعدادات الإشعارات",
+      "push_notifications": "الإشعارات الفورية",
+      "sms_notifications": "إشعارات الرسائل النصية",
+      "email_notifications": "إشعارات البريد الإلكتروني",
+      "complete_profile": "إكمال الملف الشخصي"
+    },
+    "errors": {
+      "invalid_phone": "يرجى إدخال رقم هاتف لبناني صحيح",
+      "invalid_otp": "رمز التحقق غير صحيح. يرجى المحاولة مرة أخرى.",
+      "otp_expired": "انتهت صلاحية رمز التحقق. يرجى طلب رمز جديد.",
+      "too_many_attempts": "محاولات كثيرة جداً. يرجى المحاولة لاحقاً.",
+      "network_error": "خطأ في الشبكة. يرجى التحقق من اتصالك والمحاولة مرة أخرى.",
+      "server_error": "خطأ في الخادم. يرجى المحاولة لاحقاً."
+    }
+  },
+  "home": {
+    "title": "صناديق نهاية اليوم",
+    "search_placeholder": "ابحث عن مطاعم، مخابز...",
+    "location_permission": {
+      "title": "مطلوب الوصول للموقع",
+      "description": "نحتاج موقعك لإظهار الصناديق المتاحة القريبة منك",
+      "grant_permission": "منح الإذن"
+    },
+    "categories": {
+      "all": "الكل",
+      "restaurant": "مطاعم",
+      "bakery": "مخابز",
+      "supermarket": "سوبرماركت",
+      "cafe": "مقاهي",
+      "grocery": "بقالات"
+    },
+    "filters": {
+      "distance": "المسافة",
+      "price": "نطاق السعر",
+      "rating": "التقييم",
+      "dietary": "التفضيلات الغذائية"
+    },
+    "empty_states": {
+      "no_location": {
+        "title": "الموقع غير متاح",
+        "description": "يرجى تفعيل خدمات الموقع للعثور على الصناديق القريبة منك"
+      },
+      "no_boxes": {
+        "title": "لا توجد صناديق متاحة",
+        "description": "لم يتم العثور على صناديق في منطقتك. جرب توسيع نطاق البحث أو تحقق لاحقاً."
+      },
+      "no_results": {
+        "title": "لم يتم العثور على نتائج",
+        "description": "جرب تعديل المرشحات أو كلمات البحث"
+      }
+    }
+  },
+  "box_details": {
+    "original_price": "السعر الأصلي",
+    "discounted_price": "سعرك",
+    "you_save": "توفر",
+    "available": "{count} متاح",
+    "pickup_time": "وقت الاستلام",
+    "distance": "على بعد {distance} كم",
+    "about_merchant": "حول {name}",
+    "dietary_info": "المعلومات الغذائية",
+    "allergens": "مسببات الحساسية",
+    "reviews": "التقييمات",
+    "reserve_now": "احجز الآن",
+    "sold_out": "نفذ المخزون",
+    "expired": "انتهت فترة الاستلام"
+  },
+  "reservation": {
+    "confirmation": {
+      "title": "تم تأكيد الحجز!",
+      "subtitle": "صندوقك محجوز لمدة {duration} دقيقة",
+      "pickup_code": "رمز الاستلام",
+      "pickup_location": "موقع الاستلام",
+      "pickup_time": "وقت الاستلام",
+      "important_info": "معلومات مهمة",
+      "bring_code": "• أحضر رمز الاستلام هذا للتاجر",
+      "arrive_on_time": "• احضر خلال فترة الاستلام",
+      "cash_payment": "• الدفع نقداً عند الاستلام",
+      "view_reservation": "عرض الحجز",
+      "get_directions": "الحصول على الاتجاهات"
+    },
+    "active": {
+      "title": "حجز نشط",
+      "expires_in": "ينتهي خلال {time}",
+      "pickup_code": "رمز الاستلام: {code}",
+      "show_qr": "إظهار رمز QR",
+      "cancel_reservation": "إلغاء الحجز"
+    },
+    "history": {
+      "title": "تاريخ الحجوزات",
+      "completed": "مكتمل",
+      "cancelled": "ملغى",
+      "expired": "منتهي الصلاحية",
+      "no_reservations": "لا توجد حجوزات بعد"
+    },
+    "errors": {
+      "already_reserved": "لديك بالفعل حجز نشط مع هذا التاجر",
+      "box_unavailable": "هذا الصندوق لم يعد متاحاً",
+      "pickup_closed": "انتهت فترة الاستلام",
+      "network_error": "فشل في إنشاء الحجز. يرجى المحاولة مرة أخرى."
+    }
+  },
+  "profile": {
+    "title": "الملف الشخصي",
+    "edit_profile": "تعديل الملف الشخصي",
+    "personal_info": "المعلومات الشخصية",
+    "preferences": "التفضيلات",
+    "notifications": "الإشعارات",
+    "language": "اللغة",
+    "about": "حول التطبيق",
+    "support": "الدعم",
+    "terms": "شروط الخدمة",
+    "privacy": "سياسة الخصوصية",
+    "logout": "تسجيل الخروج",
+    "delete_account": "حذف الحساب"
+  },
+  "notifications": {
+    "reservation_confirmed": {
+      "title": "تم تأكيد الحجز!",
+      "body": "صندوقك من {merchant} محجوز. الاستلام: {time}"
+    },
+    "reservation_reminder": {
+      "title": "تذكير بالاستلام",
+      "body": "لا تنس استلام صندوقك من {merchant} قبل {time}"
+    },
+    "reservation_expiring": {
+      "title": "الحجز ينتهي قريباً",
+      "body": "حجزك في {merchant} ينتهي خلال 10 دقائق"
+    },
+    "reservation_expired": {
+      "title": "انتهى الحجز",
+      "body": "انتهى حجزك في {merchant}"
+    },
+    "new_boxes_available": {
+      "title": "صناديق جديدة متاحة!",
+      "body": "تحقق من الصناديق الجديدة من التجار المفضلين لديك"
+    }
+  },
+  "errors": {
+    "generic": {
+      "title": "عذراً! حدث خطأ ما",
+      "description": "نواجه صعوبات تقنية. يرجى المحاولة مرة أخرى.",
+      "retry": "حاول مرة أخرى"
+    },
+    "network": {
+      "title": "مشكلة في الاتصال",
+      "description": "يرجى التحقق من اتصالك بالإنترنت والمحاولة مرة أخرى.",
+      "retry": "إعادة المحاولة"
+    },
+    "server": {
+      "title": "خطأ في الخادم",
+      "description": "خوادمنا غير متاحة مؤقتاً. يرجى المحاولة لاحقاً.",
+      "retry": "حاول مرة أخرى"
+    },
+    "not_found": {
+      "title": "غير موجود",
+      "description": "المحتوى الذي تبحث عنه غير متاح.",
+      "go_home": "العودة للرئيسية"
+    },
+    "permission_denied": {
+      "title": "مطلوب إذن",
+      "description": "هذه الميزة تتطلب أذونات إضافية للعمل بشكل صحيح.",
+      "grant_permission": "منح الإذن"
+    }
+  },
+  "common": {
+    "loading": "جاري التحميل...",
+    "retry": "إعادة المحاولة",
+    "cancel": "إلغاء",
+    "confirm": "تأكيد",
+    "save": "حفظ",
+    "edit": "تعديل",
+    "delete": "حذف",
+    "share": "مشاركة",
+    "close": "إغلاق",
+    "done": "تم",
+    "continue": "متابعة",
+    "back": "السابق",
+    "next": "التالي",
+    "skip": "تخطي",
+    "yes": "نعم",
+    "no": "لا",
+    "ok": "موافق",
+    "search": "بحث",
+    "filter": "تصفية",
+    "sort": "ترتيب",
+    "refresh": "تحديث",
+    "view_all": "عرض الكل",
+    "see_more": "عرض المزيد",
+    "show_less": "عرض أقل"
+  },
+  "time": {
+    "now": "الآن",
+    "minutes_ago": "منذ {count} دقيقة",
+    "hours_ago": "منذ {count} ساعة",
+    "days_ago": "منذ {count} يوم",
+    "today": "اليوم",
+    "tomorrow": "غداً",
+    "yesterday": "أمس"
+  },
+  "currency": {
+    "symbol": "د.ل",
+    "format": "{amount} د.ل"
+  }
+}

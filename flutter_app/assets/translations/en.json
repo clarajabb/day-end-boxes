@@ -1,0 +1,283 @@
+{
+  "app": {
+    "name": "Day-End Boxes",
+    "tagline": "Save Food, Save Money",
+    "description": "Discover discounted end-of-day food boxes from local restaurants, bakeries, and supermarkets in Lebanon"
+  },
+  "onboarding": {
+    "welcome": {
+      "title": "Welcome to Day-End Boxes",
+      "subtitle": "Your gateway to affordable, delicious food while fighting waste",
+      "description": "Join thousands of Lebanese food lovers saving money and the environment, one box at a time."
+    },
+    "how_it_works": {
+      "title": "How It Works",
+      "step1": {
+        "title": "Discover",
+        "description": "Browse nearby restaurants, bakeries, and supermarkets offering discounted boxes"
+      },
+      "step2": {
+        "title": "Reserve",
+        "description": "Reserve your surprise box for pickup during the specified time window"
+      },
+      "step3": {
+        "title": "Enjoy",
+        "description": "Pick up your box and enjoy quality food at up to 70% off regular prices"
+      }
+    },
+    "benefits": {
+      "title": "Why Choose Day-End Boxes?",
+      "save_money": {
+        "title": "Save Money",
+        "description": "Get premium food at discounted prices - up to 70% off!"
+      },
+      "reduce_waste": {
+        "title": "Fight Food Waste",
+        "description": "Help local businesses reduce waste while enjoying great meals"
+      },
+      "support_local": {
+        "title": "Support Local",
+        "description": "Support your favorite Lebanese restaurants and bakeries"
+      },
+      "surprise_meals": {
+        "title": "Surprise Meals",
+        "description": "Discover new flavors with curated surprise boxes"
+      }
+    },
+    "get_started": "Get Started",
+    "skip": "Skip",
+    "next": "Next",
+    "back": "Back"
+  },
+  "auth": {
+    "phone_verification": {
+      "title": "Enter Your Phone Number",
+      "subtitle": "We'll send you a verification code to confirm your number",
+      "phone_label": "Phone Number",
+      "phone_hint": "71 123 456",
+      "country_code": "+961",
+      "send_code": "Send Code",
+      "terms_agreement": "By continuing, you agree to our Terms of Service and Privacy Policy"
+    },
+    "otp_verification": {
+      "title": "Verify Your Number",
+      "subtitle": "Enter the 6-digit code sent to {phone}",
+      "otp_hint": "Enter verification code",
+      "verify": "Verify",
+      "resend_code": "Resend Code",
+      "resend_in": "Resend in {seconds}s",
+      "change_number": "Change Number"
+    },
+    "profile_setup": {
+      "title": "Complete Your Profile",
+      "subtitle": "Help us personalize your experience",
+      "name_label": "Full Name",
+      "name_hint": "Enter your full name",
+      "email_label": "Email (Optional)",
+      "email_hint": "your@email.com",
+      "language_label": "Preferred Language",
+      "notifications_title": "Notification Preferences",
+      "push_notifications": "Push Notifications",
+      "sms_notifications": "SMS Notifications",
+      "email_notifications": "Email Notifications",
+      "complete_profile": "Complete Profile"
+    },
+    "errors": {
+      "invalid_phone": "Please enter a valid Lebanese phone number",
+      "invalid_otp": "Invalid verification code. Please try again.",
+      "otp_expired": "Verification code has expired. Please request a new one.",
+      "too_many_attempts": "Too many attempts. Please try again later.",
+      "network_error": "Network error. Please check your connection and try again.",
+      "server_error": "Server error. Please try again later."
+    }
+  },
+  "home": {
+    "title": "Day-End Boxes",
+    "search_placeholder": "Search for restaurants, bakeries...",
+    "location_permission": {
+      "title": "Location Access Required",
+      "description": "We need your location to show nearby available boxes",
+      "grant_permission": "Grant Permission"
+    },
+    "categories": {
+      "all": "All",
+      "restaurant": "Restaurants",
+      "bakery": "Bakeries",
+      "supermarket": "Supermarkets",
+      "cafe": "Cafés",
+      "grocery": "Groceries"
+    },
+    "filters": {
+      "distance": "Distance",
+      "price": "Price Range",
+      "rating": "Rating",
+      "dietary": "Dietary Preferences"
+    },
+    "empty_states": {
+      "no_location": {
+        "title": "Location Not Available",
+        "description": "Please enable location services to find boxes near you"
+      },
+      "no_boxes": {
+        "title": "No Boxes Available",
+        "description": "No boxes found in your area. Try expanding your search radius or check back later."
+      },
+      "no_results": {
+        "title": "No Results Found",
+        "description": "Try adjusting your filters or search terms"
+      }
+    }
+  },
+  "box_details": {
+    "original_price": "Original Price",
+    "discounted_price": "Your Price",
+    "you_save": "You Save",
+    "available": "{count} available",
+    "pickup_time": "Pickup Time",
+    "distance": "{distance} km away",
+    "about_merchant": "About {name}",
+    "dietary_info": "Dietary Information",
+    "allergens": "Allergens",
+    "reviews": "Reviews",
+    "reserve_now": "Reserve Now",
+    "sold_out": "Sold Out",
+    "expired": "Pickup Window Closed"
+  },
+  "reservation": {
+    "confirmation": {
+      "title": "Reservation Confirmed!",
+      "subtitle": "Your box is reserved for {duration} minutes",
+      "pickup_code": "Pickup Code",
+      "pickup_location": "Pickup Location",
+      "pickup_time": "Pickup Time",
+      "important_info": "Important Information",
+      "bring_code": "• Bring this pickup code to the merchant",
+      "arrive_on_time": "• Arrive during the pickup window",
+      "cash_payment": "• Payment is cash on pickup",
+      "view_reservation": "View Reservation",
+      "get_directions": "Get Directions"
+    },
+    "active": {
+      "title": "Active Reservation",
+      "expires_in": "Expires in {time}",
+      "pickup_code": "Pickup Code: {code}",
+      "show_qr": "Show QR Code",
+      "cancel_reservation": "Cancel Reservation"
+    },
+    "history": {
+      "title": "Reservation History",
+      "completed": "Completed",
+      "cancelled": "Cancelled",
+      "expired": "Expired",
+      "no_reservations": "No reservations yet"
+    },
+    "errors": {
+      "already_reserved": "You already have an active reservation with this merchant",
+      "box_unavailable": "This box is no longer available",
+      "pickup_closed": "Pickup window has closed",
+      "network_error": "Failed to create reservation. Please try again."
+    }
+  },
+  "profile": {
+    "title": "Profile",
+    "edit_profile": "Edit Profile",
+    "personal_info": "Personal Information",
+    "preferences": "Preferences",
+    "notifications": "Notifications",
+    "language": "Language",
+    "about": "About",
+    "support": "Support",
+    "terms": "Terms of Service",
+    "privacy": "Privacy Policy",
+    "logout": "Logout",
+    "delete_account": "Delete Account"
+  },
+  "notifications": {
+    "reservation_confirmed": {
+      "title": "Reservation Confirmed!",
+      "body": "Your box from {merchant} is reserved. Pickup: {time}"
+    },
+    "reservation_reminder": {
+      "title": "Pickup Reminder",
+      "body": "Don't forget to pickup your box from {merchant} by {time}"
+    },
+    "reservation_expiring": {
+      "title": "Reservation Expiring Soon",
+      "body": "Your reservation at {merchant} expires in 10 minutes"
+    },
+    "reservation_expired": {
+      "title": "Reservation Expired",
+      "body": "Your reservation at {merchant} has expired"
+    },
+    "new_boxes_available": {
+      "title": "New Boxes Available!",
+      "body": "Check out fresh boxes from your favorite merchants"
+    }
+  },
+  "errors": {
+    "generic": {
+      "title": "Oops! Something went wrong",
+      "description": "We're experiencing technical difficulties. Please try again.",
+      "retry": "Try Again"
+    },
+    "network": {
+      "title": "Connection Problem",
+      "description": "Please check your internet connection and try again.",
+      "retry": "Retry"
+    },
+    "server": {
+      "title": "Server Error",
+      "description": "Our servers are temporarily unavailable. Please try again later.",
+      "retry": "Try Again"
+    },
+    "not_found": {
+      "title": "Not Found",
+      "description": "The content you're looking for is not available.",
+      "go_home": "Go Home"
+    },
+    "permission_denied": {
+      "title": "Permission Required",
+      "description": "This feature requires additional permissions to work properly.",
+      "grant_permission": "Grant Permission"
+    }
+  },
+  "common": {
+    "loading": "Loading...",
+    "retry": "Retry",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "save": "Save",
+    "edit": "Edit",
+    "delete": "Delete",
+    "share": "Share",
+    "close": "Close",
+    "done": "Done",
+    "continue": "Continue",
+    "back": "Back",
+    "next": "Next",
+    "skip": "Skip",
+    "yes": "Yes",
+    "no": "No",
+    "ok": "OK",
+    "search": "Search",
+    "filter": "Filter",
+    "sort": "Sort",
+    "refresh": "Refresh",
+    "view_all": "View All",
+    "see_more": "See More",
+    "show_less": "Show Less"
+  },
+  "time": {
+    "now": "Now",
+    "minutes_ago": "{count} minutes ago",
+    "hours_ago": "{count} hours ago",
+    "days_ago": "{count} days ago",
+    "today": "Today",
+    "tomorrow": "Tomorrow",
+    "yesterday": "Yesterday"
+  },
+  "currency": {
+    "symbol": "$",
+    "format": "${amount}"
+  }
+}

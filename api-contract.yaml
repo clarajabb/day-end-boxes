@@ -1,0 +1,1126 @@
+openapi: 3.0.3
+info:
+  title: Day-End Boxes API
+  description: TooGoodToGo-style marketplace API for end-of-day food boxes in Lebanon
+  version: 1.0.0
+  contact:
+    name: Day-End Boxes Team
+    email: support@dayendboxes.lb
+
+servers:
+  - url: https://api.dayendboxes.lb/v1
+    description: Production server
+  - url: https://staging-api.dayendboxes.lb/v1
+    description: Staging server
+
+paths:
+  # Authentication Endpoints
+  /auth/send-otp:
+    post:
+      tags: [Authentication]
+      summary: Send OTP to phone number
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [phone, locale]
+              properties:
+                phone:
+                  type: string
+                  pattern: '^(\+961)?[0-9]{8}$'
+                  example: "+96171123456"
+                locale:
+                  type: string
+                  enum: [ar, en]
+                  default: ar
+      responses:
+        '200':
+          description: OTP sent successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '429':
+          description: Too many requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/verify-otp:
+    post:
+      tags: [Authentication]
+      summary: Verify OTP and get access token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [phone, otp]
+              properties:
+                phone:
+                  type: string
+                  pattern: '^(\+961)?[0-9]{8}$'
+                otp:
+                  type: string
+                  pattern: '^[0-9]{6}$'
+                  example: "123456"
+      responses:
+        '200':
+          description: Authentication successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      accessToken:
+                        type: string
+                      refreshToken:
+                        type: string
+                      user:
+                        $ref: '#/components/schemas/User'
+        '400':
+          description: Invalid OTP
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/refresh:
+    post:
+      tags: [Authentication]
+      summary: Refresh access token
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [refreshToken]
+              properties:
+                refreshToken:
+                  type: string
+      responses:
+        '200':
+          description: Token refreshed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      accessToken:
+                        type: string
+
+  # User Profile Endpoints
+  /users/profile:
+    get:
+      tags: [Users]
+      summary: Get user profile
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: User profile retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/User'
+
+    patch:
+      tags: [Users]
+      summary: Update user profile
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  minLength: 2
+                  maxLength: 100
+                email:
+                  type: string
+                  format: email
+                preferredLocale:
+                  type: string
+                  enum: [ar, en]
+                notificationPreferences:
+                  type: object
+                  properties:
+                    pushEnabled:
+                      type: boolean
+                    smsEnabled:
+                      type: boolean
+                    emailEnabled:
+                      type: boolean
+      responses:
+        '200':
+          description: Profile updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/User'
+
+  # Box Discovery Endpoints
+  /boxes/nearby:
+    get:
+      tags: [Boxes]
+      summary: Get nearby available boxes
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: lat
+          in: query
+          required: true
+          schema:
+            type: number
+            format: double
+            minimum: -90
+            maximum: 90
+        - name: lng
+          in: query
+          required: true
+          schema:
+            type: number
+            format: double
+            minimum: -180
+            maximum: 180
+        - name: radius
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 10
+          description: Search radius in kilometers
+        - name: category
+          in: query
+          schema:
+            type: string
+            enum: [bakery, restaurant, supermarket, cafe, grocery]
+        - name: maxPrice
+          in: query
+          schema:
+            type: number
+            format: double
+            minimum: 0
+        - name: availableOnly
+          in: query
+          schema:
+            type: boolean
+            default: true
+      responses:
+        '200':
+          description: Nearby boxes retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/BoxInventoryWithMerchant'
+
+  /boxes/{boxInventoryId}:
+    get:
+      tags: [Boxes]
+      summary: Get box details
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: boxInventoryId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Box details retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/BoxInventoryDetails'
+        '404':
+          description: Box not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # Reservation Endpoints
+  /reservations:
+    post:
+      tags: [Reservations]
+      summary: Create a box reservation
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [boxInventoryId]
+              properties:
+                boxInventoryId:
+                  type: string
+                  format: uuid
+      responses:
+        '201':
+          description: Reservation created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Reservation'
+        '400':
+          description: Invalid request or box unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: User already has active reservation with this merchant
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    get:
+      tags: [Reservations]
+      summary: Get user reservations
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [active, completed, cancelled, expired]
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        '200':
+          description: Reservations retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      reservations:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/ReservationWithDetails'
+                      total:
+                        type: integer
+                      hasMore:
+                        type: boolean
+
+  /reservations/{reservationId}/cancel:
+    post:
+      tags: [Reservations]
+      summary: Cancel a reservation
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: reservationId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Reservation cancelled successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Cannot cancel reservation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /reservations/{reservationId}/pickup-code:
+    get:
+      tags: [Reservations]
+      summary: Get pickup code for reservation
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: reservationId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Pickup code retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      numericCode:
+                        type: string
+                        pattern: '^[0-9]{6}$'
+                      qrCode:
+                        type: string
+                        description: Base64 encoded QR code image
+                      expiresAt:
+                        type: string
+                        format: date-time
+
+  # Merchant Dashboard Endpoints
+  /merchant/auth/login:
+    post:
+      tags: [Merchant]
+      summary: Merchant staff login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  minLength: 8
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      accessToken:
+                        type: string
+                      merchant:
+                        $ref: '#/components/schemas/Merchant'
+
+  /merchant/box-types:
+    get:
+      tags: [Merchant]
+      summary: Get merchant box types
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Box types retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/BoxType'
+
+    post:
+      tags: [Merchant]
+      summary: Create new box type
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, description, originalPrice, discountedPrice, category]
+              properties:
+                name:
+                  type: string
+                  minLength: 2
+                  maxLength: 100
+                description:
+                  type: string
+                  maxLength: 500
+                originalPrice:
+                  type: number
+                  format: double
+                  minimum: 0
+                discountedPrice:
+                  type: number
+                  format: double
+                  minimum: 0
+                category:
+                  type: string
+                  enum: [bakery, restaurant, supermarket, cafe, grocery]
+                allergens:
+                  type: array
+                  items:
+                    type: string
+                dietaryInfo:
+                  type: array
+                  items:
+                    type: string
+                    enum: [vegetarian, vegan, gluten-free, dairy-free, halal]
+      responses:
+        '201':
+          description: Box type created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/BoxType'
+
+  /merchant/box-inventory:
+    get:
+      tags: [Merchant]
+      summary: Get today's box inventory
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: date
+          in: query
+          schema:
+            type: string
+            format: date
+          description: Date to get inventory for (defaults to today)
+      responses:
+        '200':
+          description: Box inventory retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/BoxInventory'
+
+    post:
+      tags: [Merchant]
+      summary: Publish box inventory for a date
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [boxTypeId, availableDate, quantity, pickupStartTime, pickupEndTime]
+              properties:
+                boxTypeId:
+                  type: string
+                  format: uuid
+                availableDate:
+                  type: string
+                  format: date
+                quantity:
+                  type: integer
+                  minimum: 1
+                  maximum: 100
+                pickupStartTime:
+                  type: string
+                  format: time
+                pickupEndTime:
+                  type: string
+                  format: time
+                customPrice:
+                  type: number
+                  format: double
+                  minimum: 0
+                  description: Override default box type price
+      responses:
+        '201':
+          description: Box inventory published successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/BoxInventory'
+
+  /merchant/reservations:
+    get:
+      tags: [Merchant]
+      summary: Get merchant reservations
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [active, completed, cancelled, expired]
+        - name: date
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        '200':
+          description: Reservations retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      reservations:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/MerchantReservationView'
+                      total:
+                        type: integer
+                      hasMore:
+                        type: boolean
+
+  /merchant/reservations/{reservationId}/complete:
+    post:
+      tags: [Merchant]
+      summary: Mark reservation as picked up
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: reservationId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [pickupCode]
+              properties:
+                pickupCode:
+                  type: string
+                  pattern: '^[0-9]{6}$'
+      responses:
+        '200':
+          description: Reservation marked as completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Invalid pickup code or reservation cannot be completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # Admin Endpoints
+  /admin/merchants:
+    get:
+      tags: [Admin]
+      summary: Get merchants for approval/management
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, approved, rejected, suspended]
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        '200':
+          description: Merchants retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      merchants:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Merchant'
+                      total:
+                        type: integer
+                      hasMore:
+                        type: boolean
+
+  /admin/merchants/{merchantId}/approve:
+    post:
+      tags: [Admin]
+      summary: Approve merchant application
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: merchantId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Merchant approved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /admin/merchants/{merchantId}/reject:
+    post:
+      tags: [Admin]
+      summary: Reject merchant application
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: merchantId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [reason]
+              properties:
+                reason:
+                  type: string
+                  minLength: 10
+                  maxLength: 500
+      responses:
+        '200':
+          description: Merchant rejected successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    ApiResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+            details:
+              type: object
+
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        phone:
+          type: string
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        preferredLocale:
+          type: string
+          enum: [ar, en]
+        notificationPreferences:
+          type: object
+          properties:
+            pushEnabled:
+              type: boolean
+            smsEnabled:
+              type: boolean
+            emailEnabled:
+              type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    Merchant:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        businessName:
+          type: string
+        contactName:
+          type: string
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+        category:
+          type: string
+          enum: [bakery, restaurant, supermarket, cafe, grocery]
+        address:
+          type: string
+        latitude:
+          type: number
+          format: double
+        longitude:
+          type: number
+          format: double
+        status:
+          type: string
+          enum: [pending, approved, rejected, suspended]
+        businessLicense:
+          type: string
+          description: URL to business license document
+        profileImage:
+          type: string
+          description: URL to merchant profile image
+        description:
+          type: string
+        operatingHours:
+          type: object
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    BoxType:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        merchantId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        originalPrice:
+          type: number
+          format: double
+        discountedPrice:
+          type: number
+          format: double
+        category:
+          type: string
+          enum: [bakery, restaurant, supermarket, cafe, grocery]
+        allergens:
+          type: array
+          items:
+            type: string
+        dietaryInfo:
+          type: array
+          items:
+            type: string
+        images:
+          type: array
+          items:
+            type: string
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    BoxInventory:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        boxTypeId:
+          type: string
+          format: uuid
+        availableDate:
+          type: string
+          format: date
+        originalQuantity:
+          type: integer
+        remainingQuantity:
+          type: integer
+        price:
+          type: number
+          format: double
+        pickupStartTime:
+          type: string
+          format: time
+        pickupEndTime:
+          type: string
+          format: time
+        status:
+          type: string
+          enum: [active, sold_out, expired]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    BoxInventoryWithMerchant:
+      allOf:
+        - $ref: '#/components/schemas/BoxInventory'
+        - type: object
+          properties:
+            boxType:
+              $ref: '#/components/schemas/BoxType'
+            merchant:
+              $ref: '#/components/schemas/Merchant'
+            distance:
+              type: number
+              format: double
+              description: Distance in kilometers
+
+    BoxInventoryDetails:
+      allOf:
+        - $ref: '#/components/schemas/BoxInventoryWithMerchant'
+        - type: object
+          properties:
+            reviews:
+              type: array
+              items:
+                $ref: '#/components/schemas/Review'
+            averageRating:
+              type: number
+              format: double
+            totalReviews:
+              type: integer
+
+    Reservation:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        boxInventoryId:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [active, completed, cancelled, expired]
+        pickupCode:
+          type: string
+        reservedAt:
+          type: string
+          format: date-time
+        expiresAt:
+          type: string
+          format: date-time
+        completedAt:
+          type: string
+          format: date-time
+        cancelledAt:
+          type: string
+          format: date-time
+        totalAmount:
+          type: number
+          format: double
+        paymentStatus:
+          type: string
+          enum: [pending, paid, refunded]
+          description: For future payment integration
+
+    ReservationWithDetails:
+      allOf:
+        - $ref: '#/components/schemas/Reservation'
+        - type: object
+          properties:
+            boxInventory:
+              $ref: '#/components/schemas/BoxInventoryWithMerchant'
+
+    MerchantReservationView:
+      allOf:
+        - $ref: '#/components/schemas/Reservation'
+        - type: object
+          properties:
+            user:
+              type: object
+              properties:
+                id:
+                  type: string
+                  format: uuid
+                name:
+                  type: string
+                phone:
+                  type: string
+            boxInventory:
+              $ref: '#/components/schemas/BoxInventory'
+
+    Review:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        merchantId:
+          type: string
+          format: uuid
+        reservationId:
+          type: string
+          format: uuid
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+        comment:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        user:
+          type: object
+          properties:
+            name:
+              type: string
