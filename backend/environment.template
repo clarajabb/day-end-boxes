@@ -1,0 +1,47 @@
+# Copy this file to .env and update the values
+
+# Database
+DATABASE_URL="postgresql://username:password@localhost:5432/day_end_boxes?schema=public"
+
+# Redis
+REDIS_HOST=localhost
+REDIS_PORT=6379
+REDIS_PASSWORD=
+
+# JWT
+JWT_SECRET=your-super-secret-jwt-key-change-in-production
+JWT_EXPIRES_IN=15m
+REFRESH_JWT_SECRET=your-super-secret-refresh-jwt-key
+REFRESH_JWT_EXPIRES_IN=30d
+
+# OTP Service (SMS Provider)
+OTP_PROVIDER=twilio
+TWILIO_ACCOUNT_SID=your-twilio-account-sid
+TWILIO_AUTH_TOKEN=your-twilio-auth-token
+TWILIO_PHONE_NUMBER=+1234567890
+
+# File Storage
+STORAGE_PROVIDER=s3
+AWS_ACCESS_KEY_ID=your-aws-access-key
+AWS_SECRET_ACCESS_KEY=your-aws-secret-key
+AWS_S3_BUCKET=day-end-boxes-storage
+AWS_REGION=us-east-1
+
+# App Configuration
+NODE_ENV=development
+PORT=3000
+API_PREFIX=api/v1
+
+# Rate Limiting
+THROTTLE_TTL=60
+THROTTLE_LIMIT=100
+
+# Lebanese Business Config
+LEBANON_COUNTRY_CODE=+961
+DEFAULT_LOCALE=ar
+RESERVATION_TTL_MINUTES=20
+MAX_SEARCH_RADIUS_KM=50
+
+# Admin
+ADMIN_EMAIL=admin@dayendboxes.lb
+ADMIN_PASSWORD=change-me-in-production

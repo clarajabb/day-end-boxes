@@ -1,0 +1,323 @@
+// Day-End Boxes Database Schema
+// TooGoodToGo-style marketplace for Lebanon
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User entity for consumers
+model User {
+  id        String   @id @default(uuid())
+  phone     String   @unique // Lebanese phone format: +96171123456
+  name      String?
+  email     String?  @unique
+  
+  // Localization preferences
+  preferredLocale String @default("ar") // ar | en
+  
+  // Notification preferences
+  notificationPreferences Json @default("{\"pushEnabled\": true, \"smsEnabled\": true, \"emailEnabled\": false}")
+  
+  // FCM token for push notifications
+  fcmToken String?
+  
+  // Authentication
+  isActive  Boolean @default(true)
+  lastLoginAt DateTime?
+  
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relations
+  reservations Reservation[]
+  reviews      Review[]
+  
+  @@index([phone])
+  @@map("users")
+}
+
+// Merchant entity for businesses
+model Merchant {
+  id           String   @id @default(uuid())
+  businessName String
+  contactName  String
+  email        String   @unique
+  phone        String
+  
+  // Business details
+  category    MerchantCategory
+  address     String
+  latitude    Float
+  longitude   Float
+  description String?
+  
+  // Business verification
+  businessLicense String? // S3/GCS URL to license document
+  profileImage    String? // S3/GCS URL to profile image
+  
+  // Operating hours (JSON structure for flexibility)
+  // Example: {"monday": {"open": "08:00", "close": "18:00", "closed": false}, ...}
+  operatingHours Json @default("{}")
+  
+  // Status for admin approval workflow
+  status MerchantStatus @default(PENDING)
+  
+  // Authentication for merchant dashboard
+  passwordHash String
+  
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relations
+  boxTypes     BoxType[]
+  boxInventory BoxInventory[]
+  reservations Reservation[]
+  reviews      Review[]
+  
+  @@map("merchants")
+}
+
+// Box type template created by merchants
+model BoxType {
+  id          String   @id @default(uuid())
+  merchantId  String
+  
+  // Box details
+  name            String
+  description     String
+  originalPrice   Float  // Original price before discount
+  discountedPrice Float  // Discounted price for end-of-day
+  category        BoxCategory
+  
+  // Food information
+  allergens    String[] // Array of allergen strings
+  dietaryInfo  DietaryInfo[] // Enum array for dietary restrictions
+  
+  // Images (S3/GCS URLs)
+  images String[] @default([])
+  
+  // Status
+  isActive Boolean @default(true)
+  
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relations
+  merchant      Merchant       @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  boxInventory  BoxInventory[]
+  
+  @@map("box_types")
+}
+
+// Daily inventory of boxes available for reservation
+model BoxInventory {
+  id         String   @id @default(uuid())
+  boxTypeId  String
+  merchantId String   // Direct reference to merchant for easier queries
+  
+  // Availability details
+  availableDate     DateTime @db.Date // Date when boxes are available
+  originalQuantity  Int      // Initial quantity published
+  remainingQuantity Int      // Current remaining quantity
+  
+  // Pricing (can override box type price)
+  price Float // Final price (may include dynamic pricing)
+  
+  // Pickup window
+  pickupStartTime DateTime @db.Time
+  pickupEndTime   DateTime @db.Time
+  
+  // Status
+  status InventoryStatus @default(ACTIVE)
+  
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relations
+  boxType      BoxType       @relation(fields: [boxTypeId], references: [id], onDelete: Cascade)
+  merchant     Merchant      @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  reservations Reservation[]
+  
+  // Ensure one inventory per box type per date
+  @@unique([boxTypeId, availableDate])
+  @@map("box_inventory")
+}
+
+// Reservation entity with TTL and pickup codes
+model Reservation {
+  id             String   @id @default(uuid())
+  userId         String
+  boxInventoryId String
+  merchantId     String   // Direct reference for business rules
+  
+  // Reservation details
+  status       ReservationStatus @default(ACTIVE)
+  pickupCode   String            @unique // 6-digit numeric code
+  totalAmount  Float             // Amount to pay (for future payment integration)
+  
+  // Timing
+  reservedAt  DateTime
+  expiresAt   DateTime  // TTL for reservation (15-30 minutes)
+  completedAt DateTime?
+  cancelledAt DateTime?
+  
+  // Payment status (for future integration)
+  paymentStatus PaymentStatus @default(PENDING)
+  paymentMethod String?       // cash, card, etc.
+  
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relations
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  boxInventory BoxInventory @relation(fields: [boxInventoryId], references: [id], onDelete: Cascade)
+  merchant     Merchant     @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  reviews      Review[]
+  
+  // Business rule: one active reservation per user per merchant
+  @@map("reservations")
+}
+
+// Review system for merchants and boxes
+model Review {
+  id            String @id @default(uuid())
+  userId        String
+  merchantId    String
+  reservationId String @unique // One review per reservation
+  
+  // Review content
+  rating  Int    @db.SmallInt // 1-5 stars
+  comment String?
+  
+  // Moderation
+  isVisible Boolean @default(true)
+  
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relations
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  merchant    Merchant    @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  reservation Reservation @relation(fields: [reservationId], references: [id], onDelete: Cascade)
+  
+  @@map("reviews")
+}
+
+// Admin users for platform management
+model Admin {
+  id       String @id @default(uuid())
+  email    String @unique
+  name     String
+  
+  // Authentication
+  passwordHash String
+  
+  // Permissions
+  role AdminRole @default(MODERATOR)
+  
+  // Status
+  isActive Boolean @default(true)
+  
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  lastLoginAt DateTime?
+  
+  @@map("admins")
+}
+
+// OTP verification for phone authentication
+model OtpVerification {
+  id        String   @id @default(uuid())
+  phone     String
+  otp       String
+  attempts  Int      @default(0)
+  verified  Boolean  @default(false)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  
+  @@map("otp_verifications")
+}
+
+// Session management for refresh tokens
+model RefreshToken {
+  id        String   @id @default(uuid())
+  userId    String?
+  merchantId String?
+  adminId   String?
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  
+  @@map("refresh_tokens")
+}
+
+// Enums
+enum MerchantCategory {
+  BAKERY
+  RESTAURANT
+  SUPERMARKET
+  CAFE
+  GROCERY
+}
+
+enum MerchantStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  SUSPENDED
+}
+
+enum BoxCategory {
+  BAKERY
+  RESTAURANT
+  SUPERMARKET
+  CAFE
+  GROCERY
+}
+
+enum DietaryInfo {
+  VEGETARIAN
+  VEGAN
+  GLUTEN_FREE
+  DAIRY_FREE
+  HALAL
+}
+
+enum InventoryStatus {
+  ACTIVE
+  SOLD_OUT
+  EXPIRED
+}
+
+enum ReservationStatus {
+  ACTIVE
+  COMPLETED
+  CANCELLED
+  EXPIRED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  REFUNDED
+}
+
+enum AdminRole {
+  SUPER_ADMIN
+  ADMIN
+  MODERATOR
+}
+
+// Indexes are defined within each model using @@index
