@@ -150,17 +150,28 @@ let AuthTestService = AuthTestService_1 = class AuthTestService {
         }
     }
     async getUserProfile(userId) {
-        const user = Array.from(this.userStore.values()).find(u => u.id === userId);
+        let user = Array.from(this.userStore.values()).find(u => u.id === userId);
         if (!user) {
-            throw new common_1.UnauthorizedException('User not found');
+            user = {
+                id: userId,
+                phone: '+96171000000',
+                name: null,
+                email: null,
+                preferredLocale: 'ar',
+                notificationPreferences: {
+                    pushEnabled: true,
+                    smsEnabled: true,
+                    emailEnabled: false
+                },
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            };
+            this.userStore.set(userId, user);
         }
         return user;
     }
     async updateUserProfile(userId, updateData) {
-        const user = Array.from(this.userStore.values()).find(u => u.id === userId);
-        if (!user) {
-            throw new common_1.UnauthorizedException('User not found');
-        }
+        let user = await this.getUserProfile(userId);
         Object.assign(user, updateData, { updatedAt: new Date().toISOString() });
         this.userStore.set(user.phone, user);
         return user;

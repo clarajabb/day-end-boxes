@@ -52,56 +52,62 @@ let UsersTestController = class UsersTestController {
             }
         };
     }
+    debugAuth(user) {
+        return {
+            success: true,
+            message: 'JWT authentication is working!',
+            user: user,
+            note: 'This endpoint just returns the JWT payload'
+        };
+    }
     async getProfile(user) {
         try {
-            const profile = await this.usersTestService.findById(user.sub);
+            let profile;
+            try {
+                profile = await this.usersTestService.findById(user.sub || user.id);
+            }
+            catch (error) {
+                profile = {
+                    id: user.sub || user.id,
+                    phone: user.phone || '+96171000000',
+                    name: null,
+                    email: null,
+                    preferredLocale: 'ar',
+                    notificationPreferences: {
+                        pushEnabled: true,
+                        smsEnabled: true,
+                        emailEnabled: false
+                    },
+                    isActive: true,
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString()
+                };
+                await this.usersTestService.createDynamicUser(profile);
+            }
             return {
                 success: true,
                 message: 'User profile retrieved successfully',
                 data: profile,
+                note: 'TEST MODE: Using in-memory user data'
             };
         }
         catch (error) {
-            if (error.message === 'User not found') {
-                const basicProfile = {
-                    id: user.sub,
-                    phone: user.phone || '+96171000000',
-                    name: null,
-                    email: null,
-                    preferredLocale: 'ar',
-                    notificationPreferences: {
-                        pushEnabled: true,
-                        smsEnabled: true,
-                        emailEnabled: false
-                    },
-                    isActive: true,
-                    createdAt: new Date().toISOString(),
-                    updatedAt: new Date().toISOString()
-                };
-                await this.usersTestService.createDynamicUser(basicProfile);
-                return {
-                    success: true,
-                    message: 'User profile retrieved (created from JWT)',
-                    data: basicProfile,
-                    note: 'TEST MODE: User not found in test data, created basic profile from JWT'
-                };
-            }
-            throw error;
+            return {
+                success: false,
+                message: 'Failed to retrieve user profile',
+                error: error.message
+            };
         }
     }
     async getStats(user) {
         try {
-            const stats = await this.usersTestService.getUserReservationStats(user.sub);
-            return {
-                success: true,
-                message: 'User statistics retrieved successfully',
-                data: stats,
-            };
-        }
-        catch (error) {
-            if (error.message === 'User not found') {
+            let stats;
+            try {
+                stats = await this.usersTestService.getUserReservationStats(user.sub || user.id);
+            }
+            catch (error) {
                 const basicProfile = {
-                    id: user.sub,
+                    id: user.sub || user.id,
                     phone: user.phone || '+96171000000',
                     name: null,
                     email: null,
@@ -116,7 +122,7 @@ let UsersTestController = class UsersTestController {
                     updatedAt: new Date().toISOString()
                 };
                 await this.usersTestService.createDynamicUser(basicProfile);
-                const emptyStats = {
+                stats = {
                     total: 0,
                     active: 0,
                     completed: 0,
@@ -125,14 +131,20 @@ let UsersTestController = class UsersTestController {
                     favoriteCategory: null,
                     lastReservation: null
                 };
-                return {
-                    success: true,
-                    message: 'User statistics retrieved (empty for new user)',
-                    data: emptyStats,
-                    note: 'TEST MODE: User not found in test data, created user and returning empty statistics'
-                };
             }
-            throw error;
+            return {
+                success: true,
+                message: 'User statistics retrieved successfully',
+                data: stats,
+                note: 'TEST MODE: Using in-memory reservation data'
+            };
+        }
+        catch (error) {
+            return {
+                success: false,
+                message: 'Failed to retrieve user statistics',
+                error: error.message
+            };
         }
     }
     async getAllTestUsers() {
@@ -194,6 +206,17 @@ __decorate([
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], UsersTestController.prototype, "getStatus", null);
+__decorate([
+    (0, common_1.Get)('debug'),
+    (0, common_1.UseGuards)(jwt_test_auth_guard_1.JwtTestAuthGuard),
+    (0, swagger_1.ApiBearerAuth)('JWT-auth'),
+    (0, swagger_1.ApiOperation)({ summary: 'Debug JWT authentication (TEST MODE)' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'JWT authentication working' }),
+    __param(0, (0, get_user_decorator_1.GetUser)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], UsersTestController.prototype, "debugAuth", null);
 __decorate([
     (0, common_1.Get)('profile'),
     (0, common_1.UseGuards)(jwt_test_auth_guard_1.JwtTestAuthGuard),

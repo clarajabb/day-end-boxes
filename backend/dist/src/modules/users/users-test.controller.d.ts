@@ -30,57 +30,37 @@ export declare class UsersTestController {
             'POST /users-test/:id/reservation': string;
         };
     };
+    debugAuth(user: any): {
+        success: boolean;
+        message: string;
+        user: any;
+        note: string;
+    };
     getProfile(user: any): Promise<{
         success: boolean;
         message: string;
         data: any;
-        note?: undefined;
+        note: string;
+        error?: undefined;
     } | {
         success: boolean;
         message: string;
-        data: {
-            id: any;
-            phone: any;
-            name: any;
-            email: any;
-            preferredLocale: string;
-            notificationPreferences: {
-                pushEnabled: boolean;
-                smsEnabled: boolean;
-                emailEnabled: boolean;
-            };
-            isActive: boolean;
-            createdAt: string;
-            updatedAt: string;
-        };
-        note: string;
+        error: any;
+        data?: undefined;
+        note?: undefined;
     }>;
     getStats(user: any): Promise<{
         success: boolean;
         message: string;
-        data: {
-            total: number;
-            active: number;
-            completed: number;
-            cancelled: number;
-            totalSaved: number;
-            favoriteCategory: string;
-            lastReservation: any;
-        };
-        note?: undefined;
+        data: any;
+        note: string;
+        error?: undefined;
     } | {
         success: boolean;
         message: string;
-        data: {
-            total: number;
-            active: number;
-            completed: number;
-            cancelled: number;
-            totalSaved: number;
-            favoriteCategory: any;
-            lastReservation: any;
-        };
-        note: string;
+        error: any;
+        data?: undefined;
+        note?: undefined;
     }>;
     getAllTestUsers(): Promise<{
         success: boolean;

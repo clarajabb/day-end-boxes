@@ -10,14 +10,16 @@ exports.MerchantsModule = void 0;
 const common_1 = require("@nestjs/common");
 const merchants_controller_1 = require("./merchants.controller");
 const merchants_service_1 = require("./merchants.service");
+const merchants_test_controller_1 = require("./merchants-test.controller");
+const merchants_test_service_1 = require("./merchants-test.service");
 let MerchantsModule = class MerchantsModule {
 };
 exports.MerchantsModule = MerchantsModule;
 exports.MerchantsModule = MerchantsModule = __decorate([
     (0, common_1.Module)({
-        controllers: [merchants_controller_1.MerchantsController],
-        providers: [merchants_service_1.MerchantsService],
-        exports: [merchants_service_1.MerchantsService],
+        controllers: [merchants_controller_1.MerchantsController, merchants_test_controller_1.MerchantsTestController],
+        providers: [merchants_service_1.MerchantsService, merchants_test_service_1.MerchantsTestService],
+        exports: [merchants_service_1.MerchantsService, merchants_test_service_1.MerchantsTestService],
     })
 ], MerchantsModule);
 //# sourceMappingURL=merchants.module.js.map

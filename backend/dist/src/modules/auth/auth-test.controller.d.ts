@@ -22,6 +22,13 @@ export declare class AuthTestController {
             'POST /auth-test/logout': string;
         };
     };
+    debug(req: any): {
+        success: boolean;
+        message: string;
+        authHeader: any;
+        hasBearer: any;
+        note: string;
+    };
     sendOtp(sendOtpDto: SendOtpDto): Promise<{
         success: boolean;
         message: string;
@@ -53,9 +60,16 @@ export declare class AuthTestController {
         data: any;
     }>;
     logout(body: {
-        refreshToken: string;
+        refreshToken?: string;
     }): Promise<{
         success: boolean;
         message: string;
+        note: string;
+        error?: undefined;
+    } | {
+        success: boolean;
+        message: string;
+        error: any;
+        note?: undefined;
     }>;
 }

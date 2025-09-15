@@ -17,7 +17,7 @@ const common_1 = require("@nestjs/common");
 const swagger_1 = require("@nestjs/swagger");
 const throttler_1 = require("@nestjs/throttler");
 const auth_test_service_1 = require("./auth-test.service");
-const jwt_auth_guard_1 = require("./guards/jwt-auth.guard");
+const jwt_test_auth_guard_1 = require("./guards/jwt-test-auth.guard");
 const get_user_decorator_1 = require("./decorators/get-user.decorator");
 const dto_1 = require("./dto");
 let AuthTestController = class AuthTestController {
@@ -43,6 +43,16 @@ let AuthTestController = class AuthTestController {
                 'PATCH /auth-test/profile': 'Update user profile',
                 'POST /auth-test/logout': 'Logout user'
             }
+        };
+    }
+    debug(req) {
+        const authHeader = req.headers.authorization;
+        return {
+            success: true,
+            message: 'Debug endpoint working',
+            authHeader: authHeader,
+            hasBearer: authHeader?.startsWith('Bearer '),
+            note: 'This endpoint does not require authentication'
         };
     }
     async sendOtp(sendOtpDto) {
@@ -85,11 +95,23 @@ let AuthTestController = class AuthTestController {
         };
     }
     async logout(body) {
-        await this.authTestService.logout(body.refreshToken);
-        return {
-            success: true,
-            message: 'Logged out successfully',
-        };
+        try {
+            if (body.refreshToken) {
+                await this.authTestService.logout(body.refreshToken);
+            }
+            return {
+                success: true,
+                message: 'Logged out successfully',
+                note: 'TEST MODE: Token invalidated from in-memory store'
+            };
+        }
+        catch (error) {
+            return {
+                success: false,
+                message: 'Logout failed',
+                error: error.message
+            };
+        }
     }
 };
 exports.AuthTestController = AuthTestController;
@@ -101,6 +123,15 @@ __decorate([
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], AuthTestController.prototype, "getStatus", null);
+__decorate([
+    (0, common_1.Get)('debug'),
+    (0, swagger_1.ApiOperation)({ summary: 'Debug endpoint to test JWT validation (TEST MODE)' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Debug info returned' }),
+    __param(0, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], AuthTestController.prototype, "debug", null);
 __decorate([
     (0, common_1.Post)('send-otp'),
     (0, common_1.HttpCode)(common_1.HttpStatus.OK),
@@ -138,7 +169,7 @@ __decorate([
 ], AuthTestController.prototype, "refreshToken", null);
 __decorate([
     (0, common_1.Get)('profile'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, common_1.UseGuards)(jwt_test_auth_guard_1.JwtTestAuthGuard),
     (0, swagger_1.ApiBearerAuth)(),
     (0, swagger_1.ApiOperation)({ summary: 'Get current user profile (TEST MODE)' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'User profile retrieved' }),
@@ -150,7 +181,7 @@ __decorate([
 ], AuthTestController.prototype, "getProfile", null);
 __decorate([
     (0, common_1.Patch)('profile'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, common_1.UseGuards)(jwt_test_auth_guard_1.JwtTestAuthGuard),
     (0, swagger_1.ApiBearerAuth)(),
     (0, swagger_1.ApiOperation)({ summary: 'Update user profile (TEST MODE)' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Profile updated successfully' }),
@@ -163,7 +194,7 @@ __decorate([
 ], AuthTestController.prototype, "updateProfile", null);
 __decorate([
     (0, common_1.Post)('logout'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, common_1.UseGuards)(jwt_test_auth_guard_1.JwtTestAuthGuard),
     (0, swagger_1.ApiBearerAuth)(),
     (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     (0, swagger_1.ApiOperation)({ summary: 'Logout user (TEST MODE)' }),
