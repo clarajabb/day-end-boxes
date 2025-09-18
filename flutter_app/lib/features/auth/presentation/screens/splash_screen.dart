@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:lottie/lottie.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/config/app_config.dart';
-import '../../../../core/theme/app_theme.dart';
+import '../../../../design_system/design_system.dart';
+import '../../../../core/core.dart';
 import '../providers/auth_provider.dart';
 
+/// Splash screen with app initialization and authentication check
 class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
 
@@ -15,140 +15,194 @@ class SplashScreen extends ConsumerStatefulWidget {
 }
 
 class _SplashScreenState extends ConsumerState<SplashScreen>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _animationController;
-  late Animation<double> _fadeAnimation;
-  late Animation<double> _scaleAnimation;
+    with TickerProviderStateMixin {
+  late AnimationController _logoController;
+  late AnimationController _textController;
+  late Animation<double> _logoAnimation;
+  late Animation<double> _textAnimation;
 
   @override
   void initState() {
     super.initState();
-    
-    _animationController = AnimationController(
-      duration: AppConfig.longAnimation,
-      vsync: this,
-    );
-    
-    _fadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeIn,
-    ));
-    
-    _scaleAnimation = Tween<double>(
-      begin: 0.8,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.elasticOut,
-    ));
-    
-    _animationController.forward();
+    _setupAnimations();
     _initializeApp();
   }
 
+  void _setupAnimations() {
+    _logoController = AnimationController(
+      duration: DesignTokens.animationNormal,
+      vsync: this,
+    );
+    
+    _textController = AnimationController(
+      duration: DesignTokens.animationNormal,
+      vsync: this,
+    );
+
+    _logoAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _logoController,
+      curve: Curves.easeOutBack,
+    ));
+
+    _textAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _textController,
+      curve: Curves.easeOut,
+    ));
+
+    _logoController.forward();
+    Future.delayed(const Duration(milliseconds: 300), () {
+      _textController.forward();
+    });
+  }
+
   Future<void> _initializeApp() async {
-    // Simulate initialization delay
-    await Future.delayed(const Duration(seconds: 2));
-    
-    if (!mounted) return;
-    
-    // Check authentication status
-    final authState = ref.read(authProvider);
-    
-    if (authState.isAuthenticated) {
-      context.go('/home');
-    } else {
-      context.go('/onboarding');
+    try {
+      // Initialize core services
+      await _initializeServices();
+      
+      // Wait for animations to complete
+      await Future.delayed(const Duration(milliseconds: 1500));
+      
+      // Check authentication status
+      final authState = ref.read(authStateProvider);
+      
+      if (mounted) {
+        authState.when(
+          data: (user) {
+            if (user != null) {
+              context.go('/home');
+            } else {
+              context.go('/auth');
+            }
+          },
+          loading: () {
+            // Keep showing splash while loading
+          },
+          error: (error, stack) {
+            // On error, go to auth screen
+            context.go('/auth');
+          },
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        context.go('/auth');
+      }
     }
+  }
+
+  Future<void> _initializeServices() async {
+    // Initialize preferences
+    await PreferencesService.instance.init();
+    
+    // Initialize analytics
+    final analytics = ref.read(analyticsServiceProvider);
+    await analytics.logScreenView('splash_screen');
+    
+    // Initialize location service
+    final locationService = ref.read(locationServiceProvider);
+    await locationService.init();
   }
 
   @override
   void dispose() {
-    _animationController.dispose();
+    _logoController.dispose();
+    _textController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: AppTheme.primaryGradient,
-        ),
+      backgroundColor: DesignTokens.background,
+      body: SafeArea(
         child: Center(
-          child: AnimatedBuilder(
-            animation: _animationController,
-            builder: (context, child) {
-              return FadeTransition(
-                opacity: _fadeAnimation,
-                child: ScaleTransition(
-                  scale: _scaleAnimation,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      // App Logo
-                      Container(
-                        width: 120,
-                        height: 120,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(24),
-                          boxShadow: AppTheme.cardShadow,
-                        ),
-                        child: Center(
-                          child: Icon(
-                            Icons.shopping_bag_outlined,
-                            size: 60,
-                            color: AppTheme.primaryGreen,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Logo Animation
+              AnimatedBuilder(
+                animation: _logoAnimation,
+                builder: (context, child) {
+                  return Transform.scale(
+                    scale: _logoAnimation.value,
+                    child: Container(
+                      width: 120,
+                      height: 120,
+                      decoration: BoxDecoration(
+                        color: DesignTokens.accentEco,
+                        borderRadius: BorderRadius.circular(DesignTokens.radiusXl),
+                        boxShadow: DesignShadows.lg,
+                      ),
+                      child: const Icon(
+                        Icons.restaurant,
+                        size: 60,
+                        color: DesignTokens.background,
+                      ),
+                    ),
+                  );
+                },
+              ),
+              
+              SizedBox(height: DesignTokens.spacingXl),
+              
+              // App Name Animation
+              AnimatedBuilder(
+                animation: _textAnimation,
+                builder: (context, child) {
+                  return Opacity(
+                    opacity: _textAnimation.value,
+                    child: Column(
+                      children: [
+                        Text(
+                          'Day-End Boxes',
+                          style: Theme.of(context).textTheme.displayMedium?.copyWith(
+                            color: DesignTokens.textInk,
+                            fontWeight: DesignTokens.fontWeightBold,
                           ),
                         ),
-                      ),
-                      
-                      const SizedBox(height: 32),
-                      
-                      // App Name
-                      Text(
-                        AppConfig.appName,
-                        style: Theme.of(context).textTheme.displayMedium?.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      
-                      const SizedBox(height: 8),
-                      
-                      // Tagline
-                      Text(
-                        'Save Food, Save Money',
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          color: Colors.white.withOpacity(0.9),
-                          fontWeight: FontWeight.w400,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      
-                      const SizedBox(height: 48),
-                      
-                      // Loading animation
-                      SizedBox(
-                        width: 40,
-                        height: 40,
-                        child: CircularProgressIndicator(
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            Colors.white.withOpacity(0.8),
+                        SizedBox(height: DesignTokens.spacingSm),
+                        Text(
+                          'Save Food, Save Money',
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            color: DesignTokens.textSecondary,
+                            fontWeight: DesignTokens.fontWeightMedium,
                           ),
-                          strokeWidth: 3,
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+              
+              SizedBox(height: DesignTokens.spacing4xl),
+              
+              // Loading Indicator
+              AnimatedBuilder(
+                animation: _textAnimation,
+                builder: (context, child) {
+                  return Opacity(
+                    opacity: _textAnimation.value,
+                    child: const SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          DesignTokens.accentEco,
                         ),
                       ),
-                    ],
-                  ),
-                ),
-              );
-            },
+                    ),
+                  );
+                },
+              ),
+            ],
           ),
         ),
       ),
