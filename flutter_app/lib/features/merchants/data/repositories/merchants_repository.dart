@@ -199,3 +199,4 @@ MerchantsRepository merchantsRepository(MerchantsRepositoryRef ref) {
   final apiClient = ref.watch(apiClientProvider);
   return MerchantsRepositoryImpl(apiClient);
 }
+

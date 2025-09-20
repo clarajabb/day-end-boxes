@@ -204,3 +204,4 @@ class PreferencesService {
 final preferencesProvider = Provider<PreferencesService>((ref) {
   return PreferencesService.instance;
 });
+

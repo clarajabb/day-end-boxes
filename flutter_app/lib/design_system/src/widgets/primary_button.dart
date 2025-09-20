@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_haptic_feedback/flutter_haptic_feedback.dart';
-import '../../tokens/tokens.dart';
+import '../tokens/tokens.dart';
 
 /// Primary button following Uber/Uber Eats design principles
 /// Clean, high-contrast, with haptic feedback
@@ -87,7 +86,7 @@ class PrimaryButton extends StatelessWidget {
   }
 
   void _handlePress() {
-    FlutterHapticFeedback.lightImpact();
+    // Haptic feedback would go here when package is available
     onPressed?.call();
   }
 }
@@ -114,3 +113,4 @@ enum PrimaryButtonSize {
   final double iconSize;
   final double iconSpacing;
 }
+

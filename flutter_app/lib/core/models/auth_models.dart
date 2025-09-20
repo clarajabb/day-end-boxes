@@ -124,3 +124,4 @@ class LogoutResponse with _$LogoutResponse {
   factory LogoutResponse.fromJson(Map<String, dynamic> json) =>
       _$LogoutResponseFromJson(json);
 }
+

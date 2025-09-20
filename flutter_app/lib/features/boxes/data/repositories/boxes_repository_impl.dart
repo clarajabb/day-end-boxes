@@ -73,3 +73,4 @@ class BoxesRepositoryImpl implements IBoxesRepository {
     }
   }
 }
+

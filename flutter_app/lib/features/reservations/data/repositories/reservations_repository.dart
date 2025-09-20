@@ -141,3 +141,4 @@ ReservationsRepository reservationsRepository(ReservationsRepositoryRef ref) {
   final apiClient = ref.watch(apiClientProvider);
   return ReservationsRepositoryImpl(apiClient);
 }
+

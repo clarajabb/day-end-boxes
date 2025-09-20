@@ -124,3 +124,4 @@ class MerchantStatsResponse with _$MerchantStatsResponse {
   factory MerchantStatsResponse.fromJson(Map<String, dynamic> json) =>
       _$MerchantStatsResponseFromJson(json);
 }
+

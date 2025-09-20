@@ -74,3 +74,4 @@ UsersRepository usersRepository(UsersRepositoryRef ref) {
   final apiClient = ref.watch(apiClientProvider);
   return UsersRepositoryImpl(apiClient);
 }
+

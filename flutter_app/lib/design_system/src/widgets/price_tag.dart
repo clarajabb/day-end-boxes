@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../../tokens/tokens.dart';
+import '../tokens/tokens.dart';
 
 /// Price tag widget following Uber/Uber Eats design principles
 /// Shows current price, original price, and savings percentage
@@ -157,3 +157,4 @@ enum PriceTagAlignment {
   center,
   right,
 }
+

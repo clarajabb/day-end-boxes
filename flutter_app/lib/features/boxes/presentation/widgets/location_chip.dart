@@ -71,3 +71,4 @@ class LocationChip extends ConsumerWidget {
     );
   }
 }
+

@@ -150,3 +150,4 @@ BoxesRepository boxesRepository(BoxesRepositoryRef ref) {
   final apiClient = ref.watch(apiClientProvider);
   return BoxesRepositoryImpl(apiClient);
 }
+

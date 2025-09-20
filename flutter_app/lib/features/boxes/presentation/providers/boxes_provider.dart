@@ -31,3 +31,4 @@ final locationPermissionProvider = FutureProvider<bool>((ref) async {
   final locationService = ref.read(locationServiceProvider);
   return await locationService.hasLocationPermission();
 });
+

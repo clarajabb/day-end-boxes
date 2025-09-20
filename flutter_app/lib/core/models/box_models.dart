@@ -152,3 +152,4 @@ class BoxReservationRequest with _$BoxReservationRequest {
   factory BoxReservationRequest.fromJson(Map<String, dynamic> json) =>
       _$BoxReservationRequestFromJson(json);
 }
+

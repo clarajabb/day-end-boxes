@@ -17,3 +17,4 @@ abstract class IMerchantsRepository {
   /// Search merchants
   Future<List<Merchant>> searchMerchants(String query);
 }
+

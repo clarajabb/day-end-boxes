@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../tokens/tokens.dart';
+import '../tokens/tokens.dart';
 
 /// Filter chip following Uber/Uber Eats design principles
 /// Clean, rounded, with selection states
@@ -134,3 +134,4 @@ class TagChip extends AppChip {
           borderColor: DesignTokens.borderDivider,
         );
 }
+

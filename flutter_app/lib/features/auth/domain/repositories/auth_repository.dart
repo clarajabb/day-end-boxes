@@ -20,3 +20,4 @@ abstract class AuthRepository {
   /// Logout user
   Future<LogoutResponse> logout(LogoutRequest request);
 }
+

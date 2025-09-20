@@ -238,3 +238,4 @@ class AnalyticsService {
 AnalyticsService analyticsService(AnalyticsServiceRef ref) {
   return AnalyticsService.instance;
 }
+

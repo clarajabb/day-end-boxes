@@ -149,3 +149,4 @@ class LocationException implements Exception {
   @override
   String toString() => 'LocationException: $message';
 }
+

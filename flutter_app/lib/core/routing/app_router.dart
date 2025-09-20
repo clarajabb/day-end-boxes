@@ -26,8 +26,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         error: (_, __) => false,
       );
       
-      final isOnAuthRoute = state.location.startsWith('/auth');
-      final isOnSplashRoute = state.location == '/splash';
+      final isOnAuthRoute = state.fullPath?.startsWith('/auth') ?? false;
+      final isOnSplashRoute = state.fullPath == '/splash';
       
       // If not authenticated and not on auth/splash routes, redirect to splash
       if (!isAuthenticated && !isOnAuthRoute && !isOnSplashRoute) {

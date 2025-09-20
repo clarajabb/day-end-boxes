@@ -66,3 +66,4 @@ class _SearchBarState extends State<SearchBar> {
     );
   }
 }
+

@@ -1,4 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
+import 'package:flutter/material.dart';
 
 import '../../boxes/domain/entities/box.dart';
 import '../../auth/domain/entities/user.dart';
@@ -67,6 +68,7 @@ class Reservation {
 @JsonSerializable()
 class ReservationWithDetails {
   final Reservation reservation;
+  @JsonKey(fromJson: _boxInventoryFromJson, toJson: _boxInventoryToJson)
   final BoxInventoryWithMerchant boxInventory;
 
   const ReservationWithDetails({
@@ -77,6 +79,11 @@ class ReservationWithDetails {
   factory ReservationWithDetails.fromJson(Map<String, dynamic> json) => 
       _$ReservationWithDetailsFromJson(json);
   Map<String, dynamic> toJson() => _$ReservationWithDetailsToJson(this);
+
+  static BoxInventoryWithMerchant _boxInventoryFromJson(Map<String, dynamic> json) =>
+      BoxInventoryWithMerchant.fromJson(json);
+  static Map<String, dynamic> _boxInventoryToJson(BoxInventoryWithMerchant boxInventory) =>
+      boxInventory.toJson();
 
   @override
   String toString() => 

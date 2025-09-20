@@ -31,3 +31,4 @@ final merchantStatsProvider = FutureProvider<MerchantStats>((ref) async {
   final repository = ref.read(merchantsRepositoryProvider);
   return await repository.getMerchantStats();
 });
+

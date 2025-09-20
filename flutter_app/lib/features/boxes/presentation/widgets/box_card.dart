@@ -240,3 +240,4 @@ class BoxCard extends StatelessWidget {
     );
   }
 }
+

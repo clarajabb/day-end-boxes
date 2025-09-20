@@ -9,3 +9,4 @@ export 'merchant_models.dart';
 export 'box_models.dart';
 export 'reservation_models.dart';
 export 'common_models.dart';
+

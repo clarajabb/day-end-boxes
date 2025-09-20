@@ -39,3 +39,4 @@ final cancelReservationProvider = FutureProvider.family<bool, String>((ref, rese
   final repository = ref.read(reservationsRepositoryProvider);
   return await repository.cancelReservation(reservationId);
 });
+

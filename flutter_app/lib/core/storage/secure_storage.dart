@@ -94,3 +94,4 @@ class SecureStorageService {
 final secureStorageProvider = Provider<SecureStorageService>((ref) {
   return SecureStorageService.instance;
 });
+

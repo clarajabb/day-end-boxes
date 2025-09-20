@@ -178,3 +178,4 @@ class Environment {
     'biometric_auth': false,
   };
 }
+

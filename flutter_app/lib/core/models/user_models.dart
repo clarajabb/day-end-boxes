@@ -61,3 +61,4 @@ class UserStatsResponse with _$UserStatsResponse {
   factory UserStatsResponse.fromJson(Map<String, dynamic> json) =>
       _$UserStatsResponseFromJson(json);
 }
+

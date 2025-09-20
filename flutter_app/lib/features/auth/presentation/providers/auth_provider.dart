@@ -1,10 +1,13 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:dio/dio.dart';
 
 import '../../../../core/models/models.dart';
 import '../../../../core/storage/secure_storage.dart';
 import '../../../../core/storage/preferences.dart';
+import '../../../../core/api/api_client.dart';
 import '../../domain/repositories/auth_repository.dart';
+import '../../data/repositories/auth_repository_impl.dart';
 
 part 'auth_provider.g.dart';
 
@@ -180,6 +183,6 @@ class AuthState extends _$AuthState {
 /// Authentication repository provider
 @riverpod
 AuthRepository authRepository(AuthRepositoryRef ref) {
-  // TODO: Implement actual repository
-  throw UnimplementedError('AuthRepository not implemented yet');
+  final apiClient = ref.watch(apiClientProvider);
+  return AuthRepositoryImpl(apiClient);
 }

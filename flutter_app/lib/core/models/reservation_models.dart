@@ -134,3 +134,4 @@ class ReservationStats with _$ReservationStats {
   factory ReservationStats.fromJson(Map<String, dynamic> json) =>
       _$ReservationStatsFromJson(json);
 }
+
