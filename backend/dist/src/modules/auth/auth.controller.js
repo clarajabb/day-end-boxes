@@ -39,6 +39,12 @@ let AuthController = class AuthController {
             }
         };
     }
+    async debugOtp(phone) {
+        return await this.authService.debugOtp(phone);
+    }
+    async testRedis() {
+        return await this.authService.testRedis();
+    }
     async sendOtp(sendOtpDto) {
         await this.authService.sendOtp(sendOtpDto.phone, sendOtpDto.locale);
         return {
@@ -91,6 +97,23 @@ __decorate([
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], AuthController.prototype, "healthCheck", null);
+__decorate([
+    (0, common_1.Get)('debug-otp'),
+    (0, swagger_1.ApiOperation)({ summary: 'Debug endpoint to show current OTP (for development only)' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Current OTP information' }),
+    __param(0, (0, common_1.Query)('phone')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "debugOtp", null);
+__decorate([
+    (0, common_1.Get)('test-redis'),
+    (0, swagger_1.ApiOperation)({ summary: 'Test Redis connection' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Redis test result' }),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "testRedis", null);
 __decorate([
     (0, common_1.Post)('send-otp'),
     (0, common_1.HttpCode)(common_1.HttpStatus.OK),

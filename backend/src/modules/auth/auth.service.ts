@@ -30,6 +30,7 @@ export class AuthService {
   async sendOtp(phone: string, locale: string = 'ar'): Promise<void> {
     // Normalize phone number
     const normalizedPhone = this.normalizePhoneNumber(phone);
+    this.logger.log(`📱 Normalized phone: ${normalizedPhone}`);
 
     // Check rate limiting
     const rateLimitKey = `otp:rate_limit:${normalizedPhone}`;
@@ -41,7 +42,9 @@ export class AuthService {
 
     // Generate and store OTP
     const otp = this.generateOtp();
+    this.logger.log(`🔐 Generated OTP for ${normalizedPhone}: ${otp}`);
     const otpKey = `otp:${normalizedPhone}`;
+    this.logger.log(`🔑 OTP key: ${otpKey}`);
     const otpData = {
       otp,
       attempts: 0,
@@ -50,6 +53,7 @@ export class AuthService {
 
     // Store OTP with 5-minute expiration
     await this.redis.set(otpKey, JSON.stringify(otpData), 300);
+    this.logger.log(`💾 Stored OTP in Redis with key: ${otpKey}`);
 
     // Update rate limiting
     const currentAttempts = attempts ? parseInt(attempts) + 1 : 1;
@@ -298,8 +302,61 @@ export class AuthService {
     return { accessToken, refreshToken };
   }
 
+  async testRedis(): Promise<any> {
+    try {
+      const testKey = 'test:redis:connection';
+      const testValue = 'hello world';
+      
+      await this.redis.set(testKey, testValue, 60);
+      const retrieved = await this.redis.get(testKey);
+      await this.redis.del(testKey);
+      
+      return {
+        success: true,
+        message: 'Redis is working',
+        test: {
+          set: testValue,
+          get: retrieved,
+          match: testValue === retrieved
+        }
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: 'Redis test failed',
+        error: error.message
+      };
+    }
+  }
+
+  async debugOtp(phone: string): Promise<any> {
+    const normalizedPhone = this.normalizePhoneNumber(phone);
+    const otpKey = `otp:${normalizedPhone}`;
+    const otpData = await this.redis.get(otpKey);
+    
+    if (!otpData) {
+      return {
+        success: false,
+        message: 'No OTP found for this phone number',
+        phone: normalizedPhone
+      };
+    }
+    
+    const parsed = JSON.parse(otpData);
+    return {
+      success: true,
+      message: 'OTP found',
+      phone: normalizedPhone,
+      otp: parsed.otp,
+      attempts: parsed.attempts,
+      createdAt: parsed.createdAt
+    };
+  }
+
   private generateOtp(): string {
-    return Math.floor(100000 + Math.random() * 900000).toString();
+    // For development, use a fixed OTP
+    return '123456';
+    // return Math.floor(100000 + Math.random() * 900000).toString();
   }
 
   private normalizePhoneNumber(phone: string): string {

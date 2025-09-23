@@ -7,6 +7,7 @@ import {
   UseGuards,
   Get,
   Patch,
+  Query,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
@@ -43,6 +44,20 @@ export class AuthController {
         'POST /auth/logout': 'Logout user (requires JWT)'
       }
     };
+  }
+
+  @Get('debug-otp')
+  @ApiOperation({ summary: 'Debug endpoint to show current OTP (for development only)' })
+  @ApiResponse({ status: 200, description: 'Current OTP information' })
+  async debugOtp(@Query('phone') phone: string) {
+    return await this.authService.debugOtp(phone);
+  }
+
+  @Get('test-redis')
+  @ApiOperation({ summary: 'Test Redis connection' })
+  @ApiResponse({ status: 200, description: 'Redis test result' })
+  async testRedis() {
+    return await this.authService.testRedis();
   }
 
   @Post('send-otp')

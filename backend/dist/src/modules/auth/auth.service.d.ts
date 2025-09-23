@@ -22,6 +22,8 @@ export declare class AuthService {
     logout(userId: string): Promise<void>;
     validateUser(userId: string): Promise<any>;
     private generateTokens;
+    testRedis(): Promise<any>;
+    debugOtp(phone: string): Promise<any>;
     private generateOtp;
     private normalizePhoneNumber;
 }

@@ -16,6 +16,8 @@ export declare class AuthController {
             'POST /auth/logout': string;
         };
     };
+    debugOtp(phone: string): Promise<any>;
+    testRedis(): Promise<any>;
     sendOtp(sendOtpDto: SendOtpDto): Promise<{
         success: boolean;
         message: string;
