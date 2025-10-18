@@ -209,7 +209,26 @@ let AuthService = AuthService_1 = class AuthService {
         });
         this.logger.log(`User ${userId} logged out`);
     }
-    async validateUser(userId) {
+    async validateUser(userId, userType) {
+        if (userType === 'merchant') {
+            const merchant = await this.prisma.merchant.findUnique({
+                where: { id: userId },
+                select: {
+                    id: true,
+                    businessName: true,
+                    contactName: true,
+                    email: true,
+                    phone: true,
+                    category: true,
+                    address: true,
+                    status: true,
+                },
+            });
+            if (!merchant) {
+                return null;
+            }
+            return merchant;
+        }
         const user = await this.prisma.user.findUnique({
             where: { id: userId, isActive: true },
             select: {
@@ -283,7 +302,7 @@ let AuthService = AuthService_1 = class AuthService {
         };
     }
     generateOtp() {
-        return '123456';
+        return Math.floor(100000 + Math.random() * 900000).toString();
     }
     normalizePhoneNumber(phone) {
         let normalized = phone.replace(/\D/g, '');

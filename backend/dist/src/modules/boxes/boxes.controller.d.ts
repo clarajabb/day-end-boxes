@@ -4,7 +4,24 @@ export declare class BoxesController {
     constructor(boxesService: BoxesService);
     getNearbyBoxes(lat: number, lng: number, radius?: number): Promise<{
         success: boolean;
-        data: any[];
+        data: {
+            id: string;
+            merchantId: string;
+            merchantName: string;
+            boxType: string;
+            originalPrice: number;
+            discountedPrice: number;
+            discountPercentage: number;
+            availableQuantity: number;
+            pickupTime: string;
+            description: string;
+            allergens: string[];
+            isAvailable: boolean;
+            createdAt: Date;
+            availableDate: Date;
+            merchantAddress: string;
+            merchantCategory: import(".prisma/client").$Enums.MerchantCategory;
+        }[];
     }>;
     getBoxById(id: string): Promise<{
         success: boolean;
@@ -16,8 +33,8 @@ export declare class BoxesController {
                     email: string;
                     createdAt: Date;
                     updatedAt: Date;
-                    description: string | null;
                     status: import(".prisma/client").$Enums.MerchantStatus;
+                    description: string | null;
                     businessName: string;
                     contactName: string;
                     category: import(".prisma/client").$Enums.MerchantCategory;
@@ -35,8 +52,8 @@ export declare class BoxesController {
                 isActive: boolean;
                 createdAt: Date;
                 updatedAt: Date;
-                description: string;
                 merchantId: string;
+                description: string;
                 category: import(".prisma/client").$Enums.BoxCategory;
                 originalPrice: number;
                 discountedPrice: number;

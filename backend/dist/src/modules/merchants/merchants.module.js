@@ -8,6 +8,8 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.MerchantsModule = void 0;
 const common_1 = require("@nestjs/common");
+const jwt_1 = require("@nestjs/jwt");
+const config_1 = require("@nestjs/config");
 const merchants_controller_1 = require("./merchants.controller");
 const merchants_service_1 = require("./merchants.service");
 const merchants_test_controller_1 = require("./merchants-test.controller");
@@ -17,6 +19,17 @@ let MerchantsModule = class MerchantsModule {
 exports.MerchantsModule = MerchantsModule;
 exports.MerchantsModule = MerchantsModule = __decorate([
     (0, common_1.Module)({
+        imports: [
+            jwt_1.JwtModule.registerAsync({
+                inject: [config_1.ConfigService],
+                useFactory: (configService) => ({
+                    secret: configService.get('JWT_SECRET'),
+                    signOptions: {
+                        expiresIn: configService.get('JWT_EXPIRES_IN', '15m'),
+                    },
+                }),
+            }),
+        ],
         controllers: [merchants_controller_1.MerchantsController, merchants_test_controller_1.MerchantsTestController],
         providers: [merchants_service_1.MerchantsService, merchants_test_service_1.MerchantsTestService],
         exports: [merchants_service_1.MerchantsService, merchants_test_service_1.MerchantsTestService],

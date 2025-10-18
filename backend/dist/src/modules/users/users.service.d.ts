@@ -39,5 +39,7 @@ export declare class UsersService {
         total: number;
         active: number;
         completed: number;
+        cancelled: number;
+        totalSaved: number;
     }>;
 }

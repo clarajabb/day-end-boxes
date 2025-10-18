@@ -69,7 +69,7 @@ let UsersService = class UsersService {
         });
     }
     async getUserReservationStats(userId) {
-        const [totalReservations, activeReservations, completedReservations] = await Promise.all([
+        const [totalReservations, activeReservations, completedReservations, cancelledReservations] = await Promise.all([
             this.prisma.reservation.count({
                 where: { userId },
             }),
@@ -79,11 +79,21 @@ let UsersService = class UsersService {
             this.prisma.reservation.count({
                 where: { userId, status: 'COMPLETED' },
             }),
+            this.prisma.reservation.count({
+                where: { userId, status: 'CANCELLED' },
+            }),
         ]);
+        const completedReservationsData = await this.prisma.reservation.findMany({
+            where: { userId, status: 'COMPLETED' },
+            select: { totalAmount: true },
+        });
+        const totalSaved = Math.round(completedReservationsData.reduce((sum, reservation) => sum + reservation.totalAmount, 0) / 1000);
         return {
             total: totalReservations,
             active: activeReservations,
             completed: completedReservations,
+            cancelled: cancelledReservations,
+            totalSaved: totalSaved,
         };
     }
 };

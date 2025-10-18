@@ -4,19 +4,19 @@ export const API_CONFIG = {
   TIMEOUT: 10000,
   ENDPOINTS: {
         AUTH: {
-          HEALTH: '/auth-test/status',
-          SEND_OTP: '/auth-test/send-otp',
-          VERIFY_OTP: '/auth-test/verify-otp',
-          REFRESH: '/auth-test/refresh',
-          PROFILE: '/auth-test/profile',
-          LOGOUT: '/auth-test/logout',
+          HEALTH: '/auth/health',
+          SEND_OTP: '/auth/send-otp',
+          VERIFY_OTP: '/auth/verify-otp',
+          REFRESH: '/auth/refresh',
+          PROFILE: '/auth/profile',
+          LOGOUT: '/auth/logout',
         },
         USERS: {
-          PROFILE: '/users-test/profile',
-          STATS: '/users-test/stats',
+          PROFILE: '/users/profile',
+          STATS: '/users/stats',
         },
         MERCHANTS: {
-          ALL: '/merchants-test',
+          ALL: '/merchants',
         },
     BOXES: {
       NEARBY: '/boxes/nearby',

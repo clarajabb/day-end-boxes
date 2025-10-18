@@ -262,7 +262,34 @@ export class AuthService {
     this.logger.log(`User ${userId} logged out`);
   }
 
-  async validateUser(userId: string): Promise<any> {
+  async validateUser(userId: string, userType?: string): Promise<any> {
+    // If userType is 'merchant', validate against merchants table
+    if (userType === 'merchant') {
+      const merchant = await this.prisma.merchant.findUnique({
+        where: { id: userId },
+        select: {
+          id: true,
+          businessName: true,
+          contactName: true,
+          email: true,
+          phone: true,
+          category: true,
+          address: true,
+          status: true,
+        },
+      });
+
+      if (!merchant) {
+        return null;
+      }
+
+      // For profile access, allow PENDING merchants too
+      // Only restrict APPROVED status for business operations
+
+      return merchant;
+    }
+
+    // Default: validate against users table
     const user = await this.prisma.user.findUnique({
       where: { id: userId, isActive: true },
       select: {
@@ -354,9 +381,7 @@ export class AuthService {
   }
 
   private generateOtp(): string {
-    // For development, use a fixed OTP
-    return '123456';
-    // return Math.floor(100000 + Math.random() * 900000).toString();
+    return Math.floor(100000 + Math.random() * 900000).toString();
   }
 
   private normalizePhoneNumber(phone: string): string {

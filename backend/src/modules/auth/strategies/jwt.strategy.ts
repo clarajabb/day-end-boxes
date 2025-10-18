@@ -19,7 +19,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(payload: any) {
-    const user = await this.authService.validateUser(payload.sub);
+    const user = await this.authService.validateUser(payload.sub, payload.type);
     
     if (!user) {
       throw new UnauthorizedException('User not found or inactive');

@@ -14,9 +14,15 @@ const apiClient: AxiosInstance = axios.create({
 apiClient.interceptors.request.use(
   (config) => {
     if (typeof window !== 'undefined') {
-      const token = localStorage.getItem(APP_CONFIG.TOKEN_STORAGE_KEY)
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`
+      // Only add auth token to protected endpoints
+      const protectedEndpoints = ['/auth/', '/users/', '/reservations/', '/admin/']
+      const isProtectedEndpoint = protectedEndpoints.some(endpoint => config.url?.includes(endpoint))
+      
+      if (isProtectedEndpoint) {
+        const token = localStorage.getItem(APP_CONFIG.TOKEN_STORAGE_KEY)
+        if (token) {
+          config.headers.Authorization = `Bearer ${token}`
+        }
       }
     }
     return config
@@ -141,105 +147,10 @@ export class ApiService {
 
   // Boxes endpoints
   static async getNearbyBoxes(lat: number, lng: number, radius?: number): Promise<ApiResponse> {
-    // For test mode, return mock boxes data instead of calling the API
-    const mockBoxes = [
-      {
-        id: 'box_1',
-        merchantId: 'merchant_1',
-        merchantName: 'Café Central',
-        boxType: 'Mixed Meal Box',
-        originalPrice: 25000,
-        discountedPrice: 12500,
-        discountPercentage: 50,
-        availableQuantity: 3,
-        pickupTime: '18:00-19:00',
-        description: 'Fresh Lebanese mezze with grilled meats and traditional sides',
-        allergens: ['nuts', 'dairy'],
-        isAvailable: true,
-        createdAt: '2025-01-23T10:00:00.000Z'
-      },
-      {
-        id: 'box_2',
-        merchantId: 'merchant_2',
-        merchantName: 'Fresh Bakery',
-        boxType: 'Bakery Delights',
-        originalPrice: 15000,
-        discountedPrice: 7500,
-        discountPercentage: 50,
-        availableQuantity: 5,
-        pickupTime: '17:30-18:30',
-        description: 'Assorted pastries, bread, and Lebanese sweets',
-        allergens: ['gluten', 'eggs'],
-        isAvailable: true,
-        createdAt: '2025-01-23T09:30:00.000Z'
-      },
-      {
-        id: 'box_3',
-        merchantId: 'merchant_3',
-        merchantName: 'Lebanese Kitchen',
-        boxType: 'Dinner Special',
-        originalPrice: 30000,
-        discountedPrice: 15000,
-        discountPercentage: 50,
-        availableQuantity: 2,
-        pickupTime: '19:00-20:00',
-        description: 'Traditional Lebanese dinner with grilled meats and rice',
-        allergens: ['nuts'],
-        isAvailable: true,
-        createdAt: '2025-01-23T11:00:00.000Z'
-      },
-      {
-        id: 'box_4',
-        merchantId: 'merchant_4',
-        merchantName: 'Green Garden',
-        boxType: 'Healthy Bowl',
-        originalPrice: 20000,
-        discountedPrice: 10000,
-        discountPercentage: 50,
-        availableQuantity: 4,
-        pickupTime: '18:30-19:30',
-        description: 'Fresh vegetarian bowl with quinoa, vegetables, and tahini',
-        allergens: ['sesame'],
-        isAvailable: true,
-        createdAt: '2025-01-23T08:45:00.000Z'
-      },
-      {
-        id: 'box_5',
-        merchantId: 'merchant_5',
-        merchantName: 'Sweet Dreams',
-        boxType: 'Dessert Box',
-        originalPrice: 18000,
-        discountedPrice: 9000,
-        discountPercentage: 50,
-        availableQuantity: 6,
-        pickupTime: '20:00-21:00',
-        description: 'Assorted desserts including cakes, pastries, and ice cream',
-        allergens: ['dairy', 'eggs', 'nuts'],
-        isAvailable: true,
-        createdAt: '2025-01-23T12:15:00.000Z'
-      },
-      {
-        id: 'box_6',
-        merchantId: 'merchant_6',
-        merchantName: 'Quick Bites',
-        boxType: 'Burger Combo',
-        originalPrice: 22000,
-        discountedPrice: 11000,
-        discountPercentage: 50,
-        availableQuantity: 3,
-        pickupTime: '19:30-20:30',
-        description: 'Gourmet burger with fries and drink',
-        allergens: ['gluten', 'dairy'],
-        isAvailable: true,
-        createdAt: '2025-01-23T13:20:00.000Z'
-      }
-    ]
-
-    return {
-      success: true,
-      message: 'Mock boxes retrieved successfully',
-      data: mockBoxes
-    }
+    const response = await apiClient.get(API_CONFIG.ENDPOINTS.BOXES.NEARBY, {
+      params: { lat, lng, radius }
+    })
+    return response.data
   }
 
   static async getBoxById(id: string): Promise<ApiResponse> {
@@ -249,9 +160,20 @@ export class ApiService {
 
   // Reservations endpoints
   static async getUserReservations(): Promise<ApiResponse> {
-    // For test mode, use a known test user ID
-    const testUserId = 'user_test_1'
-    const response = await apiClient.get(`${API_CONFIG.ENDPOINTS.USERS.PROFILE.replace('/profile', '')}/${testUserId}/reservations`)
+    const response = await apiClient.get(API_CONFIG.ENDPOINTS.RESERVATIONS.ALL)
+    return response.data
+  }
+
+  static async createReservation(boxInventoryId: string, quantity: number = 1): Promise<ApiResponse> {
+    const response = await apiClient.post(API_CONFIG.ENDPOINTS.RESERVATIONS.ALL, {
+      boxInventoryId,
+      quantity
+    })
+    return response.data
+  }
+
+  static async cancelReservation(reservationId: string): Promise<ApiResponse> {
+    const response = await apiClient.patch(`${API_CONFIG.ENDPOINTS.RESERVATIONS.ALL}/${reservationId}/cancel`)
     return response.data
   }
 

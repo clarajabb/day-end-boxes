@@ -20,7 +20,7 @@ export declare class AuthService {
     getUserProfile(userId: string): Promise<any>;
     updateUserProfile(userId: string, updateProfileDto: UpdateProfileDto): Promise<any>;
     logout(userId: string): Promise<void>;
-    validateUser(userId: string): Promise<any>;
+    validateUser(userId: string, userType?: string): Promise<any>;
     private generateTokens;
     testRedis(): Promise<any>;
     debugOtp(phone: string): Promise<any>;

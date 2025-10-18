@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useAuth } from '@/contexts/AuthContext'
+import { ApiService } from '@/lib/api'
 import { APP_CONFIG } from '@/lib/config'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import AuthenticatedLayout from '@/components/AuthenticatedLayout'
@@ -43,6 +44,8 @@ export default function ProfilePage() {
   const { user, updateProfile, logout } = useAuth()
   const [isEditing, setIsEditing] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [userStats, setUserStats] = useState<any>(null)
+  const [isLoadingStats, setIsLoadingStats] = useState(true)
 
   const form = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
@@ -57,6 +60,40 @@ export default function ProfilePage() {
       },
     },
   })
+
+  // Load user stats
+  useEffect(() => {
+    const loadUserStats = async () => {
+      try {
+        setIsLoadingStats(true)
+        if (user) {
+          const statsResponse = await ApiService.getUserStats()
+          if (statsResponse.success) {
+            setUserStats(statsResponse.data)
+          }
+        }
+      } catch (error) {
+        console.error('Error loading user stats:', error)
+      } finally {
+        setIsLoadingStats(false)
+      }
+    }
+
+    loadUserStats()
+  }, [user])
+
+  // Listen for user stats updates from other pages
+  useEffect(() => {
+    const handleUserStatsUpdate = (event: CustomEvent) => {
+      setUserStats(event.detail)
+    }
+
+    window.addEventListener('userStatsUpdated', handleUserStatsUpdate as EventListener)
+    
+    return () => {
+      window.removeEventListener('userStatsUpdated', handleUserStatsUpdate as EventListener)
+    }
+  }, [])
 
   // Update form when user data changes
   useEffect(() => {
@@ -140,29 +177,59 @@ export default function ProfilePage() {
             {/* Quick Stats */}
             <div className="mt-6 bg-white rounded-lg shadow p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Stats</h3>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <ShoppingBag className="h-5 w-5 text-emerald-600 mr-2" />
-                    <span className="text-sm text-gray-600">Total Reservations</span>
+              {isLoadingStats ? (
+                <div className="space-y-4">
+                  <div className="animate-pulse">
+                    <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                    <div className="h-4 bg-gray-200 rounded w-1/2"></div>
                   </div>
-                  <span className="text-sm font-medium text-gray-900">12</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <Star className="h-5 w-5 text-yellow-500 mr-2" />
-                    <span className="text-sm text-gray-600">Favorite Merchant</span>
+                  <div className="animate-pulse">
+                    <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                    <div className="h-4 bg-gray-200 rounded w-1/2"></div>
                   </div>
-                  <span className="text-sm font-medium text-gray-900">Al Falamanki</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <Heart className="h-5 w-5 text-red-500 mr-2" />
-                    <span className="text-sm text-gray-600">Total Saved</span>
+                  <div className="animate-pulse">
+                    <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                    <div className="h-4 bg-gray-200 rounded w-1/2"></div>
                   </div>
-                  <span className="text-sm font-medium text-gray-900">LBP 45,000</span>
                 </div>
-              </div>
+              ) : userStats ? (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <ShoppingBag className="h-5 w-5 text-emerald-600 mr-2" />
+                      <span className="text-sm text-gray-600">Total Reservations</span>
+                    </div>
+                    <span className="text-sm font-medium text-gray-900">{userStats.total}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <Clock className="h-5 w-5 text-blue-500 mr-2" />
+                      <span className="text-sm text-gray-600">Active Reservations</span>
+                    </div>
+                    <span className="text-sm font-medium text-gray-900">{userStats.active}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <Star className="h-5 w-5 text-yellow-500 mr-2" />
+                      <span className="text-sm text-gray-600">Completed</span>
+                    </div>
+                    <span className="text-sm font-medium text-gray-900">{userStats.completed}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <Heart className="h-5 w-5 text-red-500 mr-2" />
+                      <span className="text-sm text-gray-600">Total Saved</span>
+                    </div>
+                    <span className="text-sm font-medium text-gray-900">
+                      {formatCurrency(userStats.totalSaved)}
+                    </span>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-4">
+                  <p className="text-sm text-gray-500">Unable to load stats</p>
+                </div>
+              )}
             </div>
           </div>
 

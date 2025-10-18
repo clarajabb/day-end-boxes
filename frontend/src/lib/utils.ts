@@ -29,11 +29,11 @@ export function isValidLebanesePhone(phone: string): boolean {
   return /^(\+961)?[0-9]{8}$/.test(phone) || cleaned.length === 8
 }
 
-// Utility function to format currency (Lebanese Lira)
+// Utility function to format currency (USD)
 export function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat('en-LB', {
+  return new Intl.NumberFormat('en-US', {
     style: 'currency',
-    currency: 'LBP',
+    currency: 'USD',
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   }).format(amount)

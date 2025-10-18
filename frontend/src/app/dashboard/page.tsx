@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import { ApiService } from '@/lib/api'
 import { formatCurrency, formatDate, calculateDistance } from '@/lib/utils'
@@ -11,7 +12,8 @@ import {
   Star, 
   Heart, 
   ShoppingBag, 
-  Search
+  Search,
+  XCircle
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
@@ -29,24 +31,32 @@ interface Box {
   allergens: string[]
   isAvailable: boolean
   createdAt: string
+  availableDate: string
+  merchantAddress: string
+  merchantCategory: string
 }
 
 interface Merchant {
   id: string
-  name: string
-  description: string
-  cuisine: string
-  area: string
-  address: string
-  phone: string
+  businessName: string
+  contactName: string
   email: string
-  rating: number
-  isSustainable: boolean
-  isActive: boolean
+  phone: string
+  category: string
+  address: string
+  latitude: number
+  longitude: number
+  description: string
+  businessLicense: string
+  profileImage: string
+  operatingHours: string
+  status: string
   createdAt: string
+  updatedAt: string
 }
 
 export default function DashboardPage() {
+  const router = useRouter()
   const { user, logout } = useAuth()
   const [boxes, setBoxes] = useState<Box[]>([])
   const [merchants, setMerchants] = useState<Merchant[]>([])
@@ -57,75 +67,38 @@ export default function DashboardPage() {
   const [selectedCuisine, setSelectedCuisine] = useState('')
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null)
 
+
   // Load initial data
   useEffect(() => {
     const loadData = async () => {
       try {
         setIsLoading(true)
         
-        // Load merchants
+        // Load merchants (public endpoint)
         const merchantsResponse = await ApiService.getAllMerchants()
         if (merchantsResponse.success) {
           setMerchants(merchantsResponse.data || [])
         }
 
-        // Load user stats
-        const statsResponse = await ApiService.getUserStats()
-        if (statsResponse.success) {
-          setUserStats(statsResponse.data)
+        // Load user stats only if user is authenticated
+        if (user) {
+          const statsResponse = await ApiService.getUserStats()
+          if (statsResponse.success) {
+            setUserStats(statsResponse.data)
+          }
         }
 
-        // Try to get user location, but don't fail if unavailable
-        if (navigator.geolocation) {
-          navigator.geolocation.getCurrentPosition(
-            async (position) => {
-              const location = {
-                lat: position.coords.latitude,
-                lng: position.coords.longitude,
-              }
-              setUserLocation(location)
-              
-              // Load nearby boxes
-              const boxesResponse = await ApiService.getNearbyBoxes(location.lat, location.lng, 10)
-              if (boxesResponse.success) {
-                setBoxes(boxesResponse.data || [])
-              }
-            },
-            (error) => {
-              console.warn('Location not available:', error.message)
-              // Don't show error toast, just use default location (Beirut)
-              const defaultLocation = { lat: 33.8938, lng: 35.5018 } // Beirut coordinates
-              setUserLocation(defaultLocation)
-              
-              // Load boxes with default location
-              ApiService.getNearbyBoxes(defaultLocation.lat, defaultLocation.lng, 10)
-                .then(response => {
-                  if (response.success) {
-                    setBoxes(response.data || [])
-                  }
-                })
-                .catch(err => console.error('Error loading boxes:', err))
-            },
-            {
-              timeout: 5000,
-              enableHighAccuracy: false,
-              maximumAge: 300000 // 5 minutes
-            }
-          )
-        } else {
-          // Fallback to default location if geolocation is not supported
-          const defaultLocation = { lat: 33.8938, lng: 35.5018 } // Beirut coordinates
-          setUserLocation(defaultLocation)
-          
-          // Load boxes with default location
-          try {
-            const boxesResponse = await ApiService.getNearbyBoxes(defaultLocation.lat, defaultLocation.lng, 10)
-            if (boxesResponse.success) {
-              setBoxes(boxesResponse.data || [])
-            }
-          } catch (error) {
-            console.error('Error loading boxes:', error)
+        // Load boxes with default Beirut location
+        const defaultLocation = { lat: 33.8938, lng: 35.5018 } // Beirut coordinates
+        setUserLocation(defaultLocation)
+        
+        try {
+          const boxesResponse = await ApiService.getNearbyBoxes(defaultLocation.lat, defaultLocation.lng, 10)
+          if (boxesResponse.success) {
+            setBoxes(boxesResponse.data || [])
           }
+        } catch (error) {
+          console.error('Error loading boxes:', error)
         }
       } catch (error) {
         console.error('Error loading data:', error)
@@ -135,8 +108,22 @@ export default function DashboardPage() {
       }
     }
 
-      loadData()
-    }, [])
+    loadData()
+  }, [user])
+
+  // Listen for user stats updates from other pages
+  useEffect(() => {
+    const handleUserStatsUpdate = (event: CustomEvent) => {
+      setUserStats(event.detail)
+    }
+
+    window.addEventListener('userStatsUpdated', handleUserStatsUpdate as EventListener)
+    
+    return () => {
+      window.removeEventListener('userStatsUpdated', handleUserStatsUpdate as EventListener)
+    }
+  }, [])
+
 
   // Filter boxes based on search criteria
   const filteredBoxes = boxes.filter(box => {
@@ -144,15 +131,33 @@ export default function DashboardPage() {
                          box.boxType.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          box.description.toLowerCase().includes(searchTerm.toLowerCase())
     
-    const matchesArea = !selectedArea || merchants.find(m => m.id === box.merchantId)?.area === selectedArea
-    const matchesCuisine = !selectedCuisine || merchants.find(m => m.id === box.merchantId)?.cuisine === selectedCuisine
+    const merchant = merchants.find(m => m.id === box.merchantId)
+    const matchesArea = !selectedArea || merchant?.address.toLowerCase().includes(selectedArea.toLowerCase())
+    const matchesCuisine = !selectedCuisine || merchant?.category.toLowerCase() === selectedCuisine.toLowerCase()
     
     return matchesSearch && matchesArea && matchesCuisine
   })
 
   // Get unique areas and cuisines for filters
-  const areas = [...new Set(merchants.map(m => m.area).filter(Boolean))].sort()
-  const cuisines = [...new Set(merchants.map(m => m.cuisine).filter(Boolean))].sort()
+  const areas = [...new Set(merchants.map(m => m.address.split(',')[0]).filter(Boolean))].sort()
+  const cuisines = [...new Set(merchants.map(m => m.category).filter(Boolean))].sort()
+
+  const handleReserveBox = async (box: Box) => {
+    try {
+      // For now, just show a success message
+      // In a real app, this would create a reservation
+      toast.success(`Reservation created for ${box.boxType} at ${box.merchantName}!`)
+      
+      // TODO: Implement actual reservation creation
+      // const response = await ApiService.createReservation({
+      //   boxInventoryId: box.id,
+      //   quantity: 1
+      // })
+    } catch (error) {
+      console.error('Error creating reservation:', error)
+      toast.error('Failed to create reservation. Please try again.')
+    }
+  }
 
   if (isLoading) {
     return (
@@ -184,7 +189,7 @@ export default function DashboardPage() {
 
         {/* Stats Cards */}
         {userStats && (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
             <div className="bg-white rounded-lg shadow p-6">
               <div className="flex items-center">
                 <ShoppingBag className="h-8 w-8 text-emerald-600" />
@@ -211,6 +216,16 @@ export default function DashboardPage() {
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-600">Completed</p>
                   <p className="text-2xl font-bold text-gray-900">{userStats.completed}</p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="bg-white rounded-lg shadow p-6">
+              <div className="flex items-center">
+                <XCircle className="h-8 w-8 text-red-600" />
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600">Cancelled</p>
+                  <p className="text-2xl font-bold text-gray-900">{userStats.cancelled || 0}</p>
                 </div>
               </div>
             </div>
@@ -271,15 +286,101 @@ export default function DashboardPage() {
           </div>
         </div>
 
+        {/* Restaurants Section */}
+        <div className="mb-8">
+          <h3 className="text-xl font-semibold text-gray-900 mb-4">Restaurants Near You</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {merchants.map((merchant) => {
+              const merchantBoxes = boxes.filter(box => box.merchantId === merchant.id)
+              const distance = userLocation ? 
+                calculateDistance(userLocation.lat, userLocation.lng, merchant.latitude, merchant.longitude) : null
+              
+              
+              return (
+                <div key={merchant.id} className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow overflow-hidden flex flex-col h-full">
+                  <div className="h-48 bg-gray-200 relative">
+                    <img 
+                      src={merchant.profileImage} 
+                      alt={merchant.businessName}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.currentTarget.src = 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400'
+                      }}
+                    />
+                    <div className="absolute top-3 right-3 bg-white rounded-full px-2 py-1 text-xs font-medium text-gray-700">
+                      {distance ? `${distance.toFixed(1)} km` : 'Nearby'}
+                    </div>
+                  </div>
+                  
+                  <div className="p-4 flex flex-col flex-grow">
+                    <div className="flex justify-between items-start mb-2">
+                      <h3 className="text-lg font-semibold text-gray-900">{merchant.businessName}</h3>
+                      <div className="flex items-center text-yellow-500">
+                        <Star className="h-4 w-4 fill-current" />
+                        <span className="ml-1 text-sm font-medium">4.5</span>
+                      </div>
+                    </div>
+                    
+                    <p className="text-sm text-gray-600 mb-2 line-clamp-2">{merchant.description}</p>
+                    
+                    <div className="flex items-center text-sm text-gray-500 mb-3">
+                      <MapPin className="h-4 w-4 mr-1" />
+                      <span className="truncate">{merchant.address}</span>
+                    </div>
+                    
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded-full capitalize">
+                        {merchant.category.toLowerCase()}
+                      </span>
+                      <span className="text-sm text-gray-600">
+                        {merchantBoxes.length} boxes available
+                      </span>
+                    </div>
+                    
+                    <div className="space-y-2 flex-grow">
+                      {merchantBoxes.slice(0, 2).map((box) => (
+                        <div key={box.id} className="flex justify-between items-center p-2 bg-gray-50 rounded">
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-gray-900 truncate">{box.boxType}</p>
+                            <p className="text-xs text-gray-600 truncate">{box.description}</p>
+                          </div>
+                    <div className="text-right ml-2">
+                      <p className="text-sm font-bold text-green-600">{formatCurrency(box.discountedPrice)}</p>
+                      <p className="text-xs text-gray-500 line-through">{formatCurrency(box.originalPrice)}</p>
+                    </div>
+                        </div>
+                      ))}
+                      {merchantBoxes.length > 2 && (
+                        <p className="text-xs text-gray-500 text-center">
+                          +{merchantBoxes.length - 2} more boxes
+                        </p>
+                      )}
+                    </div>
+                    
+                    <button 
+                      onClick={() => router.push(`/restaurant/${merchant.id}`)}
+                      className="w-full mt-3 bg-emerald-600 text-white py-2 px-4 rounded-lg hover:bg-emerald-700 transition-colors"
+                    >
+                      View All Boxes
+                    </button>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+
         {/* Boxes Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="mb-8">
+          <h3 className="text-xl font-semibold text-gray-900 mb-4">Available Boxes</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredBoxes.map((box) => {
             const merchant = merchants.find(m => m.id === box.merchantId)
             const distance = userLocation && merchant ? 
-              calculateDistance(userLocation.lat, userLocation.lng, 33.8938, 35.5018) : null
+              calculateDistance(userLocation.lat, userLocation.lng, merchant.latitude, merchant.longitude) : null
             
             return (
-              <div key={box.id} className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow">
+              <div key={box.id} id={`box-${box.id}`} className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow">
                 <div className="p-6">
                   <div className="flex justify-between items-start mb-4">
                     <div>
@@ -309,7 +410,7 @@ export default function DashboardPage() {
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center">
                       <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                      <span className="ml-1 text-sm text-gray-600">{merchant?.rating}</span>
+                      <span className="ml-1 text-sm text-gray-600">4.5</span>
                     </div>
                     <div className="text-sm text-gray-500">
                       {box.availableQuantity} left
@@ -330,13 +431,17 @@ export default function DashboardPage() {
                     </span>
                   </div>
                   
-                  <button className="w-full bg-emerald-600 text-white py-2 px-4 rounded-lg hover:bg-emerald-700 transition-colors">
+                  <button 
+                    onClick={() => handleReserveBox(box)}
+                    className="w-full bg-emerald-600 text-white py-2 px-4 rounded-lg hover:bg-emerald-700 transition-colors"
+                  >
                     Reserve Now
                   </button>
                 </div>
               </div>
             )
           })}
+          </div>
         </div>
 
         {filteredBoxes.length === 0 && (

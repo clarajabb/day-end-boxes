@@ -16,11 +16,8 @@ let ReservationsService = class ReservationsService {
     constructor(prisma) {
         this.prisma = prisma;
     }
-    async createReservation(userId, boxInventoryId) {
-        return null;
-    }
     async getUserReservations(userId) {
-        return await this.prisma.reservation.findMany({
+        const reservations = await this.prisma.reservation.findMany({
             where: { userId },
             include: {
                 boxInventory: {
@@ -35,6 +32,161 @@ let ReservationsService = class ReservationsService {
             },
             orderBy: { createdAt: 'desc' },
         });
+        return reservations;
+    }
+    async createReservation(userId, boxInventoryId, quantity = 1) {
+        const boxInventory = await this.prisma.boxInventory.findUnique({
+            where: { id: boxInventoryId },
+            include: {
+                boxType: {
+                    include: {
+                        merchant: true,
+                    },
+                },
+            },
+        });
+        if (!boxInventory) {
+            throw new Error('Box inventory not found');
+        }
+        if (boxInventory.remainingQuantity < quantity) {
+            throw new Error('Not enough boxes available');
+        }
+        const totalAmount = Math.round((boxInventory.price * quantity) / 1000);
+        const pickupCode = Math.floor(100000 + Math.random() * 900000).toString();
+        const expiresAt = new Date();
+        expiresAt.setHours(expiresAt.getHours() + 24);
+        const reservation = await this.prisma.reservation.create({
+            data: {
+                userId,
+                boxInventoryId,
+                merchantId: boxInventory.boxType.merchantId,
+                status: 'ACTIVE',
+                pickupCode,
+                totalAmount,
+                reservedAt: new Date(),
+                expiresAt,
+                paymentStatus: 'PENDING',
+                paymentMethod: 'CASH',
+            },
+            include: {
+                boxInventory: {
+                    include: {
+                        boxType: {
+                            include: {
+                                merchant: true,
+                            },
+                        },
+                    },
+                },
+            },
+        });
+        await this.prisma.boxInventory.update({
+            where: { id: boxInventoryId },
+            data: {
+                remainingQuantity: boxInventory.remainingQuantity - quantity,
+            },
+        });
+        return reservation;
+    }
+    async cancelReservation(userId, reservationId) {
+        const reservation = await this.prisma.reservation.findFirst({
+            where: {
+                id: reservationId,
+                userId: userId,
+                status: 'ACTIVE'
+            },
+            include: {
+                boxInventory: true
+            }
+        });
+        if (!reservation) {
+            throw new Error('Reservation not found or already cancelled');
+        }
+        const updatedReservation = await this.prisma.reservation.update({
+            where: { id: reservationId },
+            data: {
+                status: 'CANCELLED',
+                cancelledAt: new Date()
+            },
+            include: {
+                boxInventory: {
+                    include: {
+                        boxType: {
+                            include: {
+                                merchant: true,
+                            },
+                        },
+                    },
+                },
+            },
+        });
+        await this.prisma.boxInventory.update({
+            where: { id: reservation.boxInventoryId },
+            data: {
+                remainingQuantity: {
+                    increment: 1
+                }
+            }
+        });
+        return updatedReservation;
+    }
+    async getMerchantReservations(merchantId) {
+        const reservations = await this.prisma.reservation.findMany({
+            where: { merchantId },
+            include: {
+                user: {
+                    select: {
+                        id: true,
+                        name: true,
+                        phone: true,
+                        email: true
+                    }
+                },
+                boxInventory: {
+                    include: {
+                        boxType: true
+                    }
+                }
+            },
+            orderBy: { createdAt: 'desc' }
+        });
+        return reservations;
+    }
+    async markReservationCompleted(merchantId, reservationId) {
+        const reservation = await this.prisma.reservation.findFirst({
+            where: {
+                id: reservationId,
+                merchantId: merchantId,
+                status: 'ACTIVE'
+            }
+        });
+        if (!reservation) {
+            throw new Error('Reservation not found or already completed');
+        }
+        const updatedReservation = await this.prisma.reservation.update({
+            where: { id: reservationId },
+            data: {
+                status: 'COMPLETED',
+                completedAt: new Date(),
+                paymentStatus: 'PAID',
+            },
+            include: {
+                user: {
+                    select: {
+                        id: true,
+                        name: true,
+                        phone: true,
+                        email: true
+                    }
+                },
+                boxInventory: {
+                    include: {
+                        boxType: true
+                    }
+                }
+            }
+        });
+        return updatedReservation;
     }
 };
 exports.ReservationsService = ReservationsService;

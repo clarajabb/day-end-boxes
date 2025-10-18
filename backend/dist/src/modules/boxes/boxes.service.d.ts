@@ -2,7 +2,25 @@ import { PrismaService } from '../../common/prisma/prisma.service';
 export declare class BoxesService {
     private prisma;
     constructor(prisma: PrismaService);
-    findNearbyBoxes(latitude: number, longitude: number, radiusKm?: number): Promise<any[]>;
+    findNearbyBoxes(latitude: number, longitude: number, radiusKm?: number): Promise<{
+        id: string;
+        merchantId: string;
+        merchantName: string;
+        boxType: string;
+        originalPrice: number;
+        discountedPrice: number;
+        discountPercentage: number;
+        availableQuantity: number;
+        pickupTime: string;
+        description: string;
+        allergens: string[];
+        isAvailable: boolean;
+        createdAt: Date;
+        availableDate: Date;
+        merchantAddress: string;
+        merchantCategory: import(".prisma/client").$Enums.MerchantCategory;
+    }[]>;
+    private calculateDistance;
     findBoxById(id: string): Promise<{
         boxType: {
             merchant: {
@@ -11,8 +29,8 @@ export declare class BoxesService {
                 email: string;
                 createdAt: Date;
                 updatedAt: Date;
-                description: string | null;
                 status: import(".prisma/client").$Enums.MerchantStatus;
+                description: string | null;
                 businessName: string;
                 contactName: string;
                 category: import(".prisma/client").$Enums.MerchantCategory;
@@ -30,8 +48,8 @@ export declare class BoxesService {
             isActive: boolean;
             createdAt: Date;
             updatedAt: Date;
-            description: string;
             merchantId: string;
+            description: string;
             category: import(".prisma/client").$Enums.BoxCategory;
             originalPrice: number;
             discountedPrice: number;

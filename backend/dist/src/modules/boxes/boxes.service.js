@@ -17,7 +17,83 @@ let BoxesService = class BoxesService {
         this.prisma = prisma;
     }
     async findNearbyBoxes(latitude, longitude, radiusKm = 10) {
-        return [];
+        const latRange = radiusKm / 111;
+        const lngRange = radiusKm / (111 * Math.cos(latitude * Math.PI / 180));
+        const minLat = latitude - latRange;
+        const maxLat = latitude + latRange;
+        const minLng = longitude - lngRange;
+        const maxLng = longitude + lngRange;
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const boxes = await this.prisma.boxInventory.findMany({
+            where: {
+                status: 'ACTIVE',
+                remainingQuantity: {
+                    gt: 0
+                },
+                availableDate: {
+                    gte: today
+                },
+                merchant: {
+                    latitude: {
+                        gte: minLat,
+                        lte: maxLat
+                    },
+                    longitude: {
+                        gte: minLng,
+                        lte: maxLng
+                    }
+                }
+            },
+            include: {
+                boxType: true,
+                merchant: {
+                    select: {
+                        id: true,
+                        businessName: true,
+                        address: true,
+                        latitude: true,
+                        longitude: true,
+                        category: true
+                    }
+                }
+            },
+            orderBy: {
+                availableDate: 'asc'
+            }
+        });
+        const filteredBoxes = boxes.filter(box => {
+            const distance = this.calculateDistance(latitude, longitude, box.merchant.latitude, box.merchant.longitude);
+            return distance <= radiusKm;
+        });
+        return filteredBoxes.map(box => ({
+            id: box.id,
+            merchantId: box.merchant.id,
+            merchantName: box.merchant.businessName,
+            boxType: box.boxType.name,
+            originalPrice: Math.round(box.boxType.originalPrice / 1000),
+            discountedPrice: Math.round(box.price / 1000),
+            discountPercentage: Math.round(((box.boxType.originalPrice - box.price) / box.boxType.originalPrice) * 100),
+            availableQuantity: box.remainingQuantity,
+            pickupTime: `${box.pickupStartTime.toTimeString().slice(0, 5)}-${box.pickupEndTime.toTimeString().slice(0, 5)}`,
+            description: box.boxType.description,
+            allergens: box.boxType.allergens,
+            isAvailable: box.remainingQuantity > 0,
+            createdAt: box.createdAt,
+            availableDate: box.availableDate,
+            merchantAddress: box.merchant.address,
+            merchantCategory: box.merchant.category
+        }));
+    }
+    calculateDistance(lat1, lng1, lat2, lng2) {
+        const R = 6371;
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLng = (lng2 - lng1) * Math.PI / 180;
+        const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLng / 2) * Math.sin(dLng / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return R * c;
     }
     async findBoxById(id) {
         return await this.prisma.boxInventory.findUnique({
