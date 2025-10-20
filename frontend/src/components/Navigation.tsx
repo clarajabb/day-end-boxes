@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
+import { ApiService } from '@/lib/api'
 import { 
   Home, 
   ShoppingBag, 
@@ -27,6 +28,37 @@ export default function Navigation() {
   const pathname = usePathname()
   const { user, logout } = useAuth()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [activeReservations, setActiveReservations] = useState(0)
+
+  // Load active reservations count
+  useEffect(() => {
+    const loadReservations = async () => {
+      try {
+        const response = await ApiService.getUserReservations()
+        if (response.success && response.data) {
+          const activeCount = response.data.filter((reservation: any) => 
+            reservation.status === 'ACTIVE'
+          ).length
+          setActiveReservations(activeCount)
+        }
+      } catch (error) {
+        console.error('Error loading reservations:', error)
+      }
+    }
+
+    loadReservations()
+
+    // Listen for reservation updates
+    const handleReservationUpdate = () => {
+      loadReservations()
+    }
+
+    window.addEventListener('reservationUpdated', handleReservationUpdate)
+    
+    return () => {
+      window.removeEventListener('reservationUpdated', handleReservationUpdate)
+    }
+  }, [])
 
   const handleLogout = async () => {
     await logout()
@@ -81,7 +113,14 @@ export default function Navigation() {
                             : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                         }`}
                       >
-                        <item.icon className="mr-4 h-6 w-6" />
+                        <div className="relative mr-4">
+                          <item.icon className="h-6 w-6" />
+                          {item.name === 'Reservations' && activeReservations > 0 && (
+                            <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                              {activeReservations}
+                            </span>
+                          )}
+                        </div>
                         {item.name}
                       </Link>
                     )
@@ -128,7 +167,14 @@ export default function Navigation() {
                           : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                       }`}
                     >
-                      <item.icon className="mr-3 h-5 w-5" />
+                      <div className="relative mr-3">
+                        <item.icon className="h-5 w-5" />
+                        {item.name === 'Reservations' && activeReservations > 0 && (
+                          <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
+                            {activeReservations}
+                          </span>
+                        )}
+                      </div>
                       {item.name}
                     </Link>
                   )
