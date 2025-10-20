@@ -314,6 +314,104 @@ let AuthService = AuthService_1 = class AuthService {
         }
         return normalized;
     }
+    async register(registerDto) {
+        const { email, name, password, preferredLocale = 'ar' } = registerDto;
+        const existingUser = await this.prisma.user.findFirst({
+            where: {
+                OR: [
+                    { email },
+                    { email: email.toLowerCase() }
+                ]
+            }
+        });
+        if (existingUser) {
+            throw new common_1.BadRequestException('User with this email already exists');
+        }
+        const passwordHash = await bcrypt.hash(password, 10);
+        const user = await this.prisma.user.create({
+            data: {
+                email: email.toLowerCase(),
+                name,
+                passwordHash,
+                preferredLocale,
+                isActive: true,
+            },
+            select: {
+                id: true,
+                email: true,
+                name: true,
+                preferredLocale: true,
+                isActive: true,
+                createdAt: true,
+            }
+        });
+        const tokens = await this.generateTokens(user.id);
+        await this.prisma.user.update({
+            where: { id: user.id },
+            data: { lastLoginAt: new Date() }
+        });
+        this.logger.log(`New user registered: ${user.email}`);
+        return {
+            user,
+            ...tokens
+        };
+    }
+    async login(loginDto) {
+        const { email, password } = loginDto;
+        const user = await this.prisma.user.findFirst({
+            where: {
+                OR: [
+                    { email },
+                    { email: email.toLowerCase() }
+                ],
+                isActive: true
+            }
+        });
+        if (!user || !user.passwordHash) {
+            throw new common_1.UnauthorizedException('Invalid email or password');
+        }
+        const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
+        if (!isPasswordValid) {
+            throw new common_1.UnauthorizedException('Invalid email or password');
+        }
+        const tokens = await this.generateTokens(user.id);
+        await this.prisma.user.update({
+            where: { id: user.id },
+            data: { lastLoginAt: new Date() }
+        });
+        this.logger.log(`User logged in: ${user.email}`);
+        return {
+            user: {
+                id: user.id,
+                email: user.email,
+                name: user.name,
+                preferredLocale: user.preferredLocale,
+                isActive: user.isActive,
+                createdAt: user.createdAt,
+            },
+            ...tokens
+        };
+    }
+    async changePassword(userId, changePasswordDto) {
+        const { currentPassword, newPassword } = changePasswordDto;
+        const user = await this.prisma.user.findUnique({
+            where: { id: userId },
+            select: { passwordHash: true }
+        });
+        if (!user || !user.passwordHash) {
+            throw new common_1.UnauthorizedException('User not found or no password set');
+        }
+        const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.passwordHash);
+        if (!isCurrentPasswordValid) {
+            throw new common_1.UnauthorizedException('Current password is incorrect');
+        }
+        const newPasswordHash = await bcrypt.hash(newPassword, 10);
+        await this.prisma.user.update({
+            where: { id: userId },
+            data: { passwordHash: newPasswordHash }
+        });
+        this.logger.log(`Password changed for user: ${userId}`);
+    }
 };
 exports.AuthService = AuthService;
 exports.AuthService = AuthService = AuthService_1 = __decorate([

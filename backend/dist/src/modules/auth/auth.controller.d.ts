@@ -1,5 +1,5 @@
 import { AuthService } from './auth.service';
-import { SendOtpDto, VerifyOtpDto, RefreshTokenDto, UpdateProfileDto } from './dto';
+import { SendOtpDto, VerifyOtpDto, RefreshTokenDto, UpdateProfileDto, RegisterDto, LoginDto, ChangePasswordDto } from './dto';
 export declare class AuthController {
     private readonly authService;
     constructor(authService: AuthService);
@@ -41,6 +41,28 @@ export declare class AuthController {
         data: any;
     }>;
     logout(user: any): Promise<{
+        success: boolean;
+        message: string;
+    }>;
+    register(registerDto: RegisterDto): Promise<{
+        success: boolean;
+        data: {
+            user: any;
+            accessToken: string;
+            refreshToken: string;
+        };
+        message: string;
+    }>;
+    login(loginDto: LoginDto): Promise<{
+        success: boolean;
+        data: {
+            user: any;
+            accessToken: string;
+            refreshToken: string;
+        };
+        message: string;
+    }>;
+    changePassword(user: any, changePasswordDto: ChangePasswordDto): Promise<{
         success: boolean;
         message: string;
     }>;
