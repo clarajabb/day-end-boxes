@@ -129,6 +129,9 @@ docker-compose.override.yml
 *.tfstate.*
 .terraform/
 
+# TypeScript build cache
+*.tsbuildinfo
+
 # Local development
 .local/
 .cache/

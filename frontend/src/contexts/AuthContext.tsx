@@ -44,7 +44,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 // Auth provider component
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  const [isLoading, setIsLoading] = useState(false) // Start with false
 
   // Check if user is authenticated
   const isAuthenticated = !!user
@@ -77,7 +77,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     }
 
-    initializeAuth()
+    // Only run on client side
+    if (typeof window !== 'undefined') {
+      initializeAuth()
+    } else {
+      setIsLoading(false)
+    }
   }, [])
 
   // Send OTP
