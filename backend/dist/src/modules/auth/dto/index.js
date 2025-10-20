@@ -18,5 +18,4 @@ __exportStar(require("./send-otp.dto"), exports);
 __exportStar(require("./verify-otp.dto"), exports);
 __exportStar(require("./refresh-token.dto"), exports);
 __exportStar(require("./update-profile.dto"), exports);
-__exportStar(require("./auth.dto"), exports);
 //# sourceMappingURL=index.js.map

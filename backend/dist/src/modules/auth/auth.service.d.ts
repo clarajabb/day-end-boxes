@@ -4,7 +4,7 @@ import { PrismaService } from '../../common/prisma/prisma.service';
 import { RedisService } from '../../common/redis/redis.service';
 import { OtpService } from '../../common/otp/otp.service';
 import { UsersService } from '../users/users.service';
-import { UpdateProfileDto, RegisterDto, LoginDto, ChangePasswordDto } from './dto';
+import { UpdateProfileDto } from './dto';
 export declare class AuthService {
     private prisma;
     private redis;
@@ -26,15 +26,4 @@ export declare class AuthService {
     debugOtp(phone: string): Promise<any>;
     private generateOtp;
     private normalizePhoneNumber;
-    register(registerDto: RegisterDto): Promise<{
-        user: any;
-        accessToken: string;
-        refreshToken: string;
-    }>;
-    login(loginDto: LoginDto): Promise<{
-        user: any;
-        accessToken: string;
-        refreshToken: string;
-    }>;
-    changePassword(userId: string, changePasswordDto: ChangePasswordDto): Promise<void>;
 }

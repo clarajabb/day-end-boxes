@@ -9,10 +9,9 @@ datasource db {
 
 model User {
   id                      String        @id @default(uuid())
-  phone                   String?       @unique
+  phone                   String        @unique
   name                    String?
   email                   String?       @unique
-  passwordHash            String?
   preferredLocale         String        @default("ar")
   notificationPreferences Json          @default("{\"smsEnabled\": true, \"pushEnabled\": true, \"emailEnabled\": false}")
   fcmToken                String?
@@ -24,7 +23,6 @@ model User {
   reviews                 Review[]
 
   @@index([phone])
-  @@index([email])
   @@map("users")
 }
 

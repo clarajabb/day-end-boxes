@@ -8,7 +8,6 @@ export declare class MerchantsService {
         id: string;
         phone: string;
         email: string;
-        passwordHash: string;
         createdAt: Date;
         updatedAt: Date;
         status: import(".prisma/client").$Enums.MerchantStatus;
@@ -22,6 +21,7 @@ export declare class MerchantsService {
         businessLicense: string | null;
         profileImage: string | null;
         operatingHours: import("@prisma/client/runtime/library").JsonValue;
+        passwordHash: string;
     }[]>;
     register(merchantData: {
         businessName: string;
@@ -135,7 +135,6 @@ export declare class MerchantsService {
         id: string;
         phone: string;
         email: string;
-        passwordHash: string;
         createdAt: Date;
         updatedAt: Date;
         status: import(".prisma/client").$Enums.MerchantStatus;
@@ -149,12 +148,12 @@ export declare class MerchantsService {
         businessLicense: string | null;
         profileImage: string | null;
         operatingHours: import("@prisma/client/runtime/library").JsonValue;
+        passwordHash: string;
     }>;
     updateMerchantProfile(merchantId: string, updateData: any): Promise<{
         id: string;
         phone: string;
         email: string;
-        passwordHash: string;
         createdAt: Date;
         updatedAt: Date;
         status: import(".prisma/client").$Enums.MerchantStatus;
@@ -168,5 +167,6 @@ export declare class MerchantsService {
         businessLicense: string | null;
         profileImage: string | null;
         operatingHours: import("@prisma/client/runtime/library").JsonValue;
+        passwordHash: string;
     }>;
 }

@@ -20,9 +20,6 @@ import {
   VerifyOtpDto,
   RefreshTokenDto,
   UpdateProfileDto,
-  RegisterDto,
-  LoginDto,
-  ChangePasswordDto,
 } from './dto';
 
 @ApiTags('Authentication')
@@ -159,53 +156,6 @@ export class AuthController {
     return {
       success: true,
       message: 'Logged out successfully',
-    };
-  }
-
-  // Email/Password Authentication Endpoints
-  @Post('register')
-  @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({ summary: 'Register new user with email and password' })
-  @ApiResponse({ status: 201, description: 'User registered successfully' })
-  @ApiResponse({ status: 400, description: 'User already exists or validation error' })
-  async register(@Body() registerDto: RegisterDto) {
-    const result = await this.authService.register(registerDto);
-    return {
-      success: true,
-      data: result,
-      message: 'User registered successfully',
-    };
-  }
-
-  @Post('login')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Login with email and password' })
-  @ApiResponse({ status: 200, description: 'Login successful' })
-  @ApiResponse({ status: 401, description: 'Invalid credentials' })
-  async login(@Body() loginDto: LoginDto) {
-    const result = await this.authService.login(loginDto);
-    return {
-      success: true,
-      data: result,
-      message: 'Login successful',
-    };
-  }
-
-  @Post('change-password')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth('JWT-auth')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Change user password' })
-  @ApiResponse({ status: 200, description: 'Password changed successfully' })
-  @ApiResponse({ status: 401, description: 'Unauthorized or invalid current password' })
-  async changePassword(
-    @GetUser() user: any,
-    @Body() changePasswordDto: ChangePasswordDto,
-  ) {
-    await this.authService.changePassword(user.id, changePasswordDto);
-    return {
-      success: true,
-      message: 'Password changed successfully',
     };
   }
 }

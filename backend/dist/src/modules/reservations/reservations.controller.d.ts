@@ -11,7 +11,6 @@ export declare class ReservationsController {
                         id: string;
                         phone: string;
                         email: string;
-                        passwordHash: string;
                         createdAt: Date;
                         updatedAt: Date;
                         status: import(".prisma/client").$Enums.MerchantStatus;
@@ -25,6 +24,7 @@ export declare class ReservationsController {
                         businessLicense: string | null;
                         profileImage: string | null;
                         operatingHours: import("@prisma/client/runtime/library").JsonValue;
+                        passwordHash: string;
                     };
                 } & {
                     id: string;
@@ -85,7 +85,6 @@ export declare class ReservationsController {
                         id: string;
                         phone: string;
                         email: string;
-                        passwordHash: string;
                         createdAt: Date;
                         updatedAt: Date;
                         status: import(".prisma/client").$Enums.MerchantStatus;
@@ -99,6 +98,7 @@ export declare class ReservationsController {
                         businessLicense: string | null;
                         profileImage: string | null;
                         operatingHours: import("@prisma/client/runtime/library").JsonValue;
+                        passwordHash: string;
                     };
                 } & {
                     id: string;
@@ -156,7 +156,6 @@ export declare class ReservationsController {
                         id: string;
                         phone: string;
                         email: string;
-                        passwordHash: string;
                         createdAt: Date;
                         updatedAt: Date;
                         status: import(".prisma/client").$Enums.MerchantStatus;
@@ -170,6 +169,7 @@ export declare class ReservationsController {
                         businessLicense: string | null;
                         profileImage: string | null;
                         operatingHours: import("@prisma/client/runtime/library").JsonValue;
+                        passwordHash: string;
                     };
                 } & {
                     id: string;
