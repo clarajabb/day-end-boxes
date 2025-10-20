@@ -13,7 +13,11 @@ import {
   Heart, 
   ShoppingBag, 
   Search,
-  XCircle
+  XCircle,
+  Calendar,
+  Phone,
+  Info,
+  CheckCircle
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
@@ -34,6 +38,7 @@ interface Box {
   availableDate: string
   merchantAddress: string
   merchantCategory: string
+  merchantImage?: string
 }
 
 interface Merchant {
@@ -66,6 +71,8 @@ export default function DashboardPage() {
   const [selectedArea, setSelectedArea] = useState('')
   const [selectedCuisine, setSelectedCuisine] = useState('')
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null)
+  const [selectedBox, setSelectedBox] = useState<Box | null>(null)
+  const [showReservationModal, setShowReservationModal] = useState(false)
 
 
   // Load initial data
@@ -95,7 +102,15 @@ export default function DashboardPage() {
         try {
           const boxesResponse = await ApiService.getNearbyBoxes(defaultLocation.lat, defaultLocation.lng, 10)
           if (boxesResponse.success) {
-            setBoxes(boxesResponse.data || [])
+            // Merge merchant data with boxes
+            const boxesWithMerchantData = (boxesResponse.data || []).map((box: any) => {
+              const merchant = merchants.find(m => m.id === box.merchantId)
+              return {
+                ...box,
+                merchantImage: merchant?.profileImage
+              }
+            })
+            setBoxes(boxesWithMerchantData)
           }
         } catch (error) {
           console.error('Error loading boxes:', error)
@@ -142,17 +157,52 @@ export default function DashboardPage() {
   const areas = [...new Set(merchants.map(m => m.address.split(',')[0]).filter(Boolean))].sort()
   const cuisines = [...new Set(merchants.map(m => m.category).filter(Boolean))].sort()
 
-  const handleReserveBox = async (box: Box) => {
+  const handleReserveBox = (box: Box) => {
+    setSelectedBox(box)
+    setShowReservationModal(true)
+  }
+
+  const confirmReservation = async () => {
+    if (!selectedBox) return
+
     try {
-      // For now, just show a success message
-      // In a real app, this would create a reservation
-      toast.success(`Reservation created for ${box.boxType} at ${box.merchantName}!`)
+      const response = await ApiService.createReservation(selectedBox.id, 1)
       
-      // TODO: Implement actual reservation creation
-      // const response = await ApiService.createReservation({
-      //   boxInventoryId: box.id,
-      //   quantity: 1
-      // })
+      if (response.success) {
+        toast.success(`Reservation created for ${selectedBox.boxType} at ${selectedBox.merchantName}!`)
+        
+        // Update user stats
+        if (userStats) {
+          setUserStats({
+            ...userStats,
+            total: userStats.total + 1,
+            active: userStats.active + 1
+          })
+        }
+        
+        // Refresh boxes to update availability
+        const boxesResponse = await ApiService.getNearbyBoxes(userLocation?.lat || 33.8938, userLocation?.lng || 35.5018, 10)
+        if (boxesResponse.success) {
+          // Merge merchant data with boxes
+          const boxesWithMerchantData = (boxesResponse.data || []).map((box: any) => {
+            const merchant = merchants.find(m => m.id === box.merchantId)
+            return {
+              ...box,
+              merchantImage: merchant?.profileImage
+            }
+          })
+          setBoxes(boxesWithMerchantData)
+        }
+        
+        // Dispatch event to update header
+        window.dispatchEvent(new CustomEvent('reservationUpdated'))
+        
+        // Close modal
+        setShowReservationModal(false)
+        setSelectedBox(null)
+      } else {
+        toast.error(response.message || 'Failed to create reservation')
+      }
     } catch (error) {
       console.error('Error creating reservation:', error)
       toast.error('Failed to create reservation. Please try again.')
@@ -380,7 +430,18 @@ export default function DashboardPage() {
               calculateDistance(userLocation.lat, userLocation.lng, merchant.latitude, merchant.longitude) : null
             
             return (
-              <div key={box.id} id={`box-${box.id}`} className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow">
+              <div key={box.id} id={`box-${box.id}`} className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow overflow-hidden">
+                {/* Restaurant Image */}
+                {box.merchantImage && (
+                  <div className="h-48 w-full overflow-hidden">
+                    <img
+                      src={box.merchantImage}
+                      alt={`${box.merchantName} restaurant`}
+                      className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                    />
+                  </div>
+                )}
+                
                 <div className="p-6">
                   <div className="flex justify-between items-start mb-4">
                     <div>
@@ -396,7 +457,7 @@ export default function DashboardPage() {
                   
                   <div className="flex items-center text-sm text-gray-500 mb-4">
                     <MapPin className="h-4 w-4 mr-1" />
-                    <span>{merchant?.area}</span>
+                    <span>{merchant?.address.split(',')[0]}</span>
                     {distance && (
                       <span className="ml-2">• {distance.toFixed(1)} km away</span>
                     )}
@@ -452,6 +513,144 @@ export default function DashboardPage() {
           </div>
         )}
       </div>
+
+      {/* Reservation Details Modal */}
+      {selectedBox && showReservationModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-6 border-b">
+              <h2 className="text-xl font-semibold text-gray-900">Reserve Box</h2>
+              <button
+                onClick={() => {
+                  setShowReservationModal(false)
+                  setSelectedBox(null)
+                }}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              >
+                <XCircle className="h-5 w-5 text-gray-500" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-6">
+              {/* Restaurant Image */}
+              {selectedBox.merchantImage && (
+                <div className="h-32 w-full overflow-hidden rounded-lg">
+                  <img
+                    src={selectedBox.merchantImage}
+                    alt={`${selectedBox.merchantName} restaurant`}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              )}
+
+              {/* Box Details */}
+              <div className="bg-gray-50 rounded-lg p-4">
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">{selectedBox.boxType}</h3>
+                <p className="text-gray-600 mb-4">{selectedBox.description}</p>
+                
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center space-x-2">
+                    <span className="text-lg font-bold text-emerald-600">
+                      {formatCurrency(selectedBox.discountedPrice)}
+                    </span>
+                    <span className="text-sm text-gray-500 line-through">
+                      {formatCurrency(selectedBox.originalPrice)}
+                    </span>
+                  </div>
+                  <span className="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded">
+                    {selectedBox.discountPercentage}% OFF
+                  </span>
+                </div>
+
+                {selectedBox.allergens.length > 0 && (
+                  <div className="mb-4">
+                    <p className="text-sm font-medium text-gray-900 mb-2">Allergens:</p>
+                    <div className="flex flex-wrap gap-1">
+                      {selectedBox.allergens.map((allergen, index) => (
+                        <span key={index} className="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded">
+                          {allergen}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Pickup Information */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
+                  <Info className="h-5 w-5 mr-2 text-blue-600" />
+                  Pickup Information
+                </h3>
+                
+                <div className="space-y-3">
+                  <div className="flex items-center">
+                    <MapPin className="h-4 w-4 text-gray-500 mr-3" />
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">{selectedBox.merchantName}</p>
+                      <p className="text-sm text-gray-600">{selectedBox.merchantAddress}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center">
+                    <Clock className="h-4 w-4 text-gray-500 mr-3" />
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">Pickup Time</p>
+                      <p className="text-sm text-gray-600">{selectedBox.pickupTime}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center">
+                    <Calendar className="h-4 w-4 text-gray-500 mr-3" />
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">Available Date</p>
+                      <p className="text-sm text-gray-600">{formatDate(selectedBox.availableDate)}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center">
+                    <CheckCircle className="h-4 w-4 text-gray-500 mr-3" />
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">Available Quantity</p>
+                      <p className="text-sm text-gray-600">{selectedBox.availableQuantity} boxes left</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Important Notes */}
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <h3 className="text-sm font-medium text-yellow-800 mb-2">Important Notes:</h3>
+                <ul className="text-sm text-yellow-700 space-y-1">
+                  <li>• Reservation expires in 24 hours</li>
+                  <li>• Payment is made at pickup (cash only)</li>
+                  <li>• Bring your pickup code to the restaurant</li>
+                  <li>• Contact the restaurant if you need to cancel</li>
+                </ul>
+              </div>
+            </div>
+
+            <div className="flex space-x-3 p-6 border-t bg-gray-50">
+              <button
+                onClick={() => {
+                  setShowReservationModal(false)
+                  setSelectedBox(null)
+                }}
+                className="flex-1 py-2 px-4 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmReservation}
+                className="flex-1 py-2 px-4 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors flex items-center justify-center"
+              >
+                <CheckCircle className="h-4 w-4 mr-2" />
+                Confirm Reservation
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </AuthenticatedLayout>
   )
 }
